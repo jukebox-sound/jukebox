@@ -124,9 +124,9 @@ use Encode qw(
 
     # work-around $rect can't be undef in old bindings versions
     my $set_clip_rectangle_orig = \&Gtk2::Gdk::GC::set_clip_rectangle;
-    *Gtk2::Gdk::GC::set_clip_rectangle =
-      sub { &$set_clip_rectangle_orig if $_[1]; }
-        if $Gtk2::VERSION < 1.102;
+    *Gtk2::Gdk::GC::set_clip_rectangle = sub {
+        &$set_clip_rectangle_orig if $_[1];
+    } if $Gtk2::VERSION < 1.102;
 
     # previously, date strings returned by strftime needed to be
     # decoded by the locale encoding
@@ -146,7 +146,7 @@ use Encode qw(
             $encoding
                 ? Encode::decode($encoding, &strftime)
                 : &strftime
-            };
+        };
     }
 }
 
@@ -192,8 +192,7 @@ BEGIN {
     # jukebox.pl symlinked to /usr/bin/jukebox
     my @dirs = (
         $FindBin::RealBin,
-        join(SLASH, $FindBin::RealBin, '..', 'share', 'jukebox'
-        )
+        join(SLASH, $FindBin::RealBin, '..', 'share', 'jukebox')
     );
     ($DATADIR) = grep -e $_ . SLASH . 'jukebox_layout.pm', @dirs;
     die "Can't find folder containing data files, looked in @dirs\n"
@@ -251,16 +250,15 @@ BEGIN {
     if ($@) {
         eval { require Locale::gettext };
         if ($@) {
-            warn
-              "neither Locale::Messages, nor Locale::gettext found -> no translations\n";
+            warn "neither Locale::Messages, nor Locale::gettext found -> no translations\n";
         }
         elsif ($Locale::gettext::VERSION < 1.04) {
-            warn
-              "Needs at least version 1.04 of Locale::gettext, v$Locale::gettext::VERSION found -> no translations\n";
+            warn "Needs at least version 1.04 of Locale::gettext, v$Locale::gettext::VERSION found -> no translations\n";
         }
         else {
             warn "Locale::Messages not found, using Locale::gettext instead\n"
-              if $::debug;
+                if $::debug;
+
             my $d = eval { Locale::gettext->domain($domain); };
             if ($@) {
                 warn "Locale::gettext error : $@\n -> no translations\n";
@@ -336,8 +334,7 @@ my %html_entities = (
 
 sub decode_html {
     my $s = shift;
-    $s
-      =~ s/&(?:#(\d+)|#x([0-9A-F]+)|([a-z]+));/$1 ? chr($1) : $2 ? chr(hex $2) : $html_entities{$3}||'?'/egi;
+    $s =~ s/&(?:#(\d+)|#x([0-9A-F]+)|([a-z]+));/$1 ? chr($1) : $2 ? chr(hex $2) : $html_entities{$3}||'?'/egi;
     return $s;
 }
 
@@ -447,8 +444,7 @@ BEGIN # in a BEGIN block so that commands for a running instance are sent sooner
     if (  !-d $default_home
         && -d (my $old = Glib::get_home_dir . SLASH . '.jukebox'))
     {
-        warn
-          "Using folder $old for configuration, you could move it to $default_home to conform to the XDG Base Directory Specification\n";
+        warn "Using folder $old for configuration, you could move it to $default_home to conform to the XDG Base Directory Specification\n";
         $default_home = $old;
     }
 
@@ -620,11 +616,12 @@ Options to change what is done with files/folders passed as arguments (done in r
         if   (-d $save || $isdir) { $HomeDir  = $save; }
         else                      { $SaveFile = $save; }
     }
-    warn
-      "using '$HomeDir' folder for saving/setting folder instead of '$default_home'\n"
-      if $debug && $HomeDir;
-    $HomeDir = pathslash(cleanpath($HomeDir || $default_home))
-      ;                      # $HomeDir must end with a slash
+    warn "using '$HomeDir' folder for saving/setting folder instead of '$default_home'\n"
+        if $debug && $HomeDir;
+
+    # $HomeDir must end with a slash
+    $HomeDir = pathslash(cleanpath($HomeDir || $default_home));
+
     if (!-d $HomeDir) {
         warn "Creating folder $HomeDir\n";
         my $current = '';
@@ -645,7 +642,7 @@ Options to change what is done with files/folders passed as arguments (done in r
 
     $SaveFile ||= $HomeDir . 'jukeboxrc';
     $FIFOFile = $HomeDir . 'jukebox.fifo'
-      if !defined $FIFOFile && $^O ne 'MSWin32';
+        if !defined $FIFOFile && $^O ne 'MSWin32';
 
     unless ($ignore) {    # filenames given in the command line
         if (@files) {
@@ -672,16 +669,13 @@ Options to change what is done with files/folders passed as arguments (done in r
                 $running &&= "using '$FIFOFile'";
             }
             else {
-                warn
-                  "Found orphaned fifo '$FIFOFile' : previous session wasn't closed properly\n";
+                warn "Found orphaned fifo '$FIFOFile' : previous session wasn't closed properly\n";
             }
         }
         if (!$running && !$CmdLine{noDBus}) {
             eval { require 'jukebox_dbus.pm' }
-              || warn
-              "Error loading jukebox_dbus.pm :\n$@ => controlling jukebox through DBus won't be possible.\n\n";
-            my $object =
-              GMB::DBus::simple_call("$DBus_id org.jukebox/org/jukebox");
+                || warn "Error loading jukebox_dbus.pm :\n$@ => controlling jukebox through DBus won't be possible.\n\n";
+            my $object = GMB::DBus::simple_call("$DBus_id org.jukebox/org/jukebox");
             if ($object) {
                 $object->RunCommand($_) for @cmd;
                 $running = "using DBus id=$DBus_id";
@@ -719,8 +713,8 @@ BEGIN {
       ? 'simple_http_AE.pm'
       : 'simple_http.pm';
 
-#warn "using $HTTP_module for http requests\n";
-#require $HTTP_module;
+    #warn "using $HTTP_module for http requests\n";
+    #require $HTTP_module;
 
     # load gstreamer backend module
     if (!$CmdLine{nogst}) {
@@ -870,15 +864,29 @@ our %StockLabel = ('gmb-turnoff' => "Turn Off");
 
 our @DRAGTYPES;
 @DRAGTYPES[
-  DRAG_FILE, DRAG_USTRING, DRAG_STRING, DRAG_MARKUP,
-  DRAG_ID,   DRAG_ARTIST,  DRAG_ALBUM,  DRAG_FILTER
-  ]
-  = (
-    ['text/uri-list'],
-    ['text/plain;charset=utf-8'],
-    ['STRING'],
-    ['markup'],
-    [   SongID => {
+    DRAG_FILE,
+    DRAG_USTRING,
+    DRAG_STRING,
+    DRAG_MARKUP,
+    DRAG_ID,
+    DRAG_ARTIST,
+    DRAG_ALBUM,
+    DRAG_FILTER
+] = (
+    [
+        'text/uri-list'
+    ],
+    [
+        'text/plain;charset=utf-8'
+    ],
+    [
+        'STRING'
+    ],
+    [
+        'markup'
+    ],
+    [
+        SongID => {
             DRAG_FILE,
             sub { Songs::Map('uri', \@_); },
             DRAG_ARTIST,
@@ -897,12 +905,15 @@ our @DRAGTYPES;
             sub { Songs::Map('uri', \@_); },
             DRAG_FILTER,
             sub {
-                Filter->newadd(FALSE,
-                    map 'title:~:' . Songs::Get($_, 'title'), @_)->{string};
+                Filter->newadd(
+                    FALSE,
+                    map 'title:~:' . Songs::Get($_, 'title'), @_
+                )->{string};
             },
             DRAG_MARKUP,
             sub {
-                return ReplaceFieldsAndEsc($_[0],
+                return ReplaceFieldsAndEsc(
+                    $_[0],
                     "<b>%t</b>\n<small><small>by</small> %a\n<small>from</small> %l</small>"
                 ) if @_ == 1;
                 my $nba = @{Songs::UniqList2('artist', \@_)};
@@ -918,7 +929,8 @@ our @DRAGTYPES;
             },
         }
     ],
-    [   Artist => {
+    [
+        Artist => {
             DRAG_USTRING,
             sub {
                 (@_ < 10)
@@ -929,33 +941,42 @@ our @DRAGTYPES;
             #DRAG_STRING,	undef, #will use DRAG_USTRING
             DRAG_STRING,
             sub {
-                my $l = Filter->newadd(FALSE,
-                    map Songs::MakeFilterFromGID('artists', $_), @_)->filter;
+                my $l = Filter->newadd(
+                    FALSE,
+                    map Songs::MakeFilterFromGID('artists', $_), @_
+                )->filter;
                 SortList($l);
                 Songs::Map('uri', $l);
             },
             DRAG_FILE,
             sub {
-                my $l = Filter->newadd(FALSE,
-                    map Songs::MakeFilterFromGID('artists', $_), @_)->filter;
+                my $l = Filter->newadd(
+                    FALSE,
+                    map Songs::MakeFilterFromGID('artists', $_), @_
+                )->filter;
                 SortList($l);
                 Songs::Map('uri', $l);
             },
             DRAG_FILTER,
             sub {
-                Filter->newadd(FALSE,
-                    map Songs::MakeFilterFromGID('artists', $_), @_)->{string};
+                Filter->newadd(
+                    FALSE,
+                    map Songs::MakeFilterFromGID('artists', $_), @_
+                )->{string};
             },
             DRAG_ID,
             sub {
-                my $l = Filter->newadd(FALSE,
-                    map Songs::MakeFilterFromGID('artists', $_), @_)->filter;
+                my $l = Filter->newadd(
+                    FALSE,
+                    map Songs::MakeFilterFromGID('artists', $_), @_
+                )->filter;
                 SortList($l);
                 @$l;
             },
         }
     ],
-    [   Album => {
+    [
+        Album => {
             DRAG_USTRING,
             sub {
                 (@_ < 10)
@@ -966,27 +987,35 @@ our @DRAGTYPES;
             #DRAG_STRING,	undef, #will use DRAG_USTRING
             DRAG_STRING,
             sub {
-                my $l = Filter->newadd(FALSE,
-                    map Songs::MakeFilterFromGID('album', $_), @_)->filter;
+                my $l = Filter->newadd(
+                    FALSE,
+                    map Songs::MakeFilterFromGID('album', $_), @_
+                )->filter;
                 SortList($l);
                 Songs::Map('uri', $l);
             },
             DRAG_FILE,
             sub {
-                my $l = Filter->newadd(FALSE,
-                    map Songs::MakeFilterFromGID('album', $_), @_)->filter;
+                my $l = Filter->newadd(
+                    FALSE,
+                    map Songs::MakeFilterFromGID('album', $_), @_
+                )->filter;
                 SortList($l);
                 Songs::Map('uri', $l);
             },
             DRAG_FILTER,
             sub {
-                Filter->newadd(FALSE,
-                    map Songs::MakeFilterFromGID('album', $_), @_)->{string};
+                Filter->newadd(
+                    FALSE,
+                    map Songs::MakeFilterFromGID('album', $_), @_
+                )->{string};
             },
             DRAG_ID,
             sub {
-                my $l = Filter->newadd(FALSE,
-                    map Songs::MakeFilterFromGID('album', $_), @_)->filter;
+                my $l = Filter->newadd(
+                    FALSE,
+                    map Songs::MakeFilterFromGID('album', $_), @_
+                )->filter;
                 SortList($l);
                 @$l;
             },
@@ -1020,7 +1049,8 @@ $DRAGTYPES{$DRAGTYPES[$_][0]} = $_
   DRAG_FILTER, DRAG_MARKUP;
 
 our @submenuRemove = (
-    {   label => sub {
+    {
+        label => sub {
                 $_[0]{mode} eq 'Q' ? "Remove from queue"
               : $_[0]{mode} eq 'A' ? "Remove from playlist"
               :                      "Remove from list";
@@ -1029,43 +1059,53 @@ our @submenuRemove = (
         mode   => 'BLQA',
         istrue => 'allowremove',
     },
-    {   label => "Remove from library",
+    {
+        label => "Remove from library",
         code  => sub { SongsRemove($_[0]{IDs}); },
     },
-    {   label     => "Remove from disk",
+    {
+        label     => "Remove from disk",
         code      => sub { DeleteFiles($_[0]{IDs}); },
         test      => sub { !$CmdLine{ro} },
         stockicon => 'gtk-delete'
     },
 );
 our @submenuQueue = (
-    {label => "Prepend", code => sub { QueueInsert(@{$_[0]{IDs}}); },},
-    {label => "Replace", code => sub { ReplaceQueue(@{$_[0]{IDs}}); },},
-    {label => "Append",  code => sub { Enqueue(@{$_[0]{IDs}}); },},
+    { label => "Prepend", code => sub { QueueInsert(@{$_[0]{IDs}});  },},
+    { label => "Replace", code => sub { ReplaceQueue(@{$_[0]{IDs}}); },},
+    { label => "Append",  code => sub { Enqueue(@{$_[0]{IDs}});      },},
 );
 
 #modes : S:Search, B:Browser, Q:Queue, L:List, P:Playing song in the player window, F:Filter Panels (submenu "x songs")
 our @SongCMenu;
 unshift @SongCMenu
   , #unshift instead of "=" because the replaygain submenu (and maybe more in the future) has already been added to @::SongCMenu
-  ( {   label     => "Song Properties",
+  ( {
+        label     => "Song Properties",
         code      => sub { DialogSongProp(@{$_[0]{IDs}}); },
         onlyone   => 'IDs',
         stockicon => 'gtk-edit'
     },
-    {   label     => "Songs Properties",
+    {
+        label     => "Songs Properties",
         code      => sub { DialogSongsProp(@{$_[0]{IDs}}); },
         onlymany  => 'IDs',
         stockicon => 'gtk-edit'
     },
-    {   label => "Play Only Selected",
-        code =>
-          sub { Select(song => 'first', play => 1, staticlist => $_[0]{IDs}); }
-        ,
+    {
+        label => "Play Only Selected",
+        code => sub {
+            Select(
+                song => 'first',
+                play => 1,
+                staticlist => $_[0]{IDs}
+            );
+        },
         onlymany  => 'IDs',
         stockicon => 'gtk-media-play'
     },
-    {   label => "Play Only Displayed",
+    {
+        label => "Play Only Displayed",
         code  => sub {
             Select(
                 song       => 'first',
@@ -1078,29 +1118,37 @@ unshift @SongCMenu
         onlymany  => 'listIDs',
         stockicon => 'gtk-media-play'
     },
-    {   label    => "Append to playlist",
+    {
+        label    => "Append to playlist",
         code     => sub { ::DoActionForList('addplay', $_[0]{IDs}); },
         notempty => 'IDs',
-        test     => sub {$::ListMode},
+        test     => sub { $::ListMode },
     },
-    {   label     => "Enqueue Selected",
+    {
+        label     => "Enqueue Selected",
         code      => sub { Enqueue(@{$_[0]{IDs}}); },
         submenu3  => \@submenuQueue,
         notempty  => 'IDs',
         notmode   => 'QP',
         stockicon => 'gmb-queue'
     },
-    {   label     => "Enqueue Displayed",
+    {
+        label     => "Enqueue Displayed",
         code      => sub { Enqueue(@{$_[0]{listIDs}}); },
         empty     => 'IDs',
         notempty  => 'listIDs',
         notmode   => 'QP',
         stockicon => 'gmb-queue'
     },
-    {label => "Add to list", submenu => \&AddToListMenu, notempty => 'IDs'},
+    {
+        label => "Add to list",
+        submenu => \&AddToListMenu,
+        notempty => 'IDs'
+    },
 
     # edit submenu for label-type fields
-    {   label    => sub { Songs::Field_Edit_string($_[0]{field}); },
+    {
+        label    => sub { Songs::Field_Edit_string($_[0]{field}); },
         notempty => 'IDs',
         submenu  => sub { LabelEditMenu($_[0]{field}, $_[0]{IDs}); },
         foreach  => sub {
@@ -1109,172 +1157,291 @@ unshift @SongCMenu
     },
 
     # edit submenu for rating-type fields
-    {   label    => sub { Songs::Field_Edit_string($_[0]{field}); },
+    {
+        label    => sub {
+            Songs::Field_Edit_string($_[0]{field});
+        },
         notempty => 'IDs',
-        submenu  => sub { Stars::createmenu($_[0]{field}, $_[0]{IDs}); },
+        submenu  => sub {
+            Stars::createmenu($_[0]{field}, $_[0]{IDs});
+        },
         foreach  => sub {
-            'field', Songs::FieldList(true => 'editsubmenu', type => 'rating');
+            'field',
+            Songs::FieldList(
+                true => 'editsubmenu',
+                type => 'rating'
+            );
         },
     },
-    {   label    => "Find songs with the same names",
-        code     => sub { SearchSame('title', $_[0]) },
+    {
+        label    => "Find songs with the same names",
+        code     => sub {
+            SearchSame('title', $_[0])
+        },
         mode     => 'B',
         notempty => 'IDs'
     },
-    {   label    => "Find songs with same artists",
-        code     => sub { SearchSame('artists', $_[0]) },
+    {
+        label    => "Find songs with same artists",
+        code     => sub {
+            SearchSame('artists', $_[0])
+        },
         mode     => 'B',
         notempty => 'IDs'
     },
-    {   label    => "Find songs in same albums",
-        code     => sub { SearchSame('album', $_[0]) },
+    {
+        label    => "Find songs in same albums",
+        code     => sub {
+            SearchSame('album', $_[0])
+        },
         mode     => 'B',
         notempty => 'IDs'
     },
-    {   label   => "Rename file",
-        code    => sub { DialogRename(@{$_[0]{IDs}}); },
+    {
+        label   => "Rename file",
+        code    => sub {
+            DialogRename(@{$_[0]{IDs}});
+        },
         onlyone => 'IDs',
-        test    => sub { !$CmdLine{ro} },
+        test    => sub {
+            !$CmdLine{ro}
+        },
     },
-    {   label    => "Mass Rename",
-        code     => sub { DialogMassRename(@{$_[0]{IDs}}); },
+    {
+        label    => "Mass Rename",
+        code     => sub {
+            DialogMassRename(@{$_[0]{IDs}});
+        },
         onlymany => 'IDs',
-        test     => sub { !$CmdLine{ro} },
+        test     => sub {
+            !$CmdLine{ro}
+        },
     },
-    {   label     => "Copy",
-        code      => sub { CopyMoveFilesDialog($_[0]{IDs}, TRUE); },
+    {
+        label     => "Copy",
+        code      => sub {
+            CopyMoveFilesDialog($_[0]{IDs}, TRUE);
+        },
         notempty  => 'IDs',
         stockicon => 'gtk-copy',
         notmode   => 'P'
     },
-    {   label    => "Move",
-        code     => sub { CopyMoveFilesDialog($_[0]{IDs}, FALSE); },
+    {
+        label    => "Move",
+        code     => sub {
+            CopyMoveFilesDialog($_[0]{IDs}, FALSE);
+        },
         notempty => 'IDs',
         notmode  => 'P',
-        test     => sub { !$CmdLine{ro} },
+        test     => sub {
+            !$CmdLine{ro}
+        },
     },
 
 #{ label => sub {'Remove from '.($_[0]{mode} eq 'Q' ? 'queue' : 'this list')}, code => sub { $_[0]{self}->RemoveSelected; },	stockicon => 'gtk-remove',	notempty => 'IDs', mode => 'LQ' }, #FIXME
-    {   label     => "Remove",
+    {
+        label     => "Remove",
         submenu   => \@submenuRemove,
         stockicon => 'gtk-remove',
         notempty  => 'IDs',
         notmode   => 'P'
     },
-    {   label     => "Re-read tags",
-        code      => sub { ReReadTags(@{$_[0]{IDs}}); },
+    {
+        label     => "Re-read tags",
+        code      => sub {
+            ReReadTags(@{$_[0]{IDs}});
+        },
         notempty  => 'IDs',
         notmode   => 'P',
         stockicon => 'gtk-refresh'
     },
-    {   label   => "Same Title",
-        submenu => sub { ChooseSongsTitle($_[0]{IDs}[0]); },
+    {
+        label   => "Same Title",
+        submenu => sub {
+            ChooseSongsTitle($_[0]{IDs}[0]);
+        },
         mode    => 'P'
     },
-    {   label => "Edit Lyrics",
-        code  => sub { EditLyrics($_[0]{IDs}[0]); },
+    {
+        label => "Edit Lyrics",
+        code  => sub {
+            EditLyrics($_[0]{IDs}[0]);
+        },
         mode  => 'P'
     },
-    {   label => "Lookup in google",
-        code  => sub { Google($_[0]{IDs}[0]); },
+    {
+        label => "Lookup in google",
+        code  => sub {
+            Google($_[0]{IDs}[0]);
+        },
         mode  => 'P'
     },
     {
         label   => "Open containing folder",
         code    => sub {
-            openfolder(Songs::Get($_[0]{IDs}[0], 'path'));
+            openfolder(
+                Songs::Get($_[0]{IDs}[0], 'path')
+            );
         },
         stockicon => 'gtk-open',
         onlyone => 'IDs'
     },
-    {label => "Queue options", submenu => \@Layout::MenuQueue, mode => 'Q',}
+    {
+        label => "Queue options",
+        submenu => \@Layout::MenuQueue,
+        mode => 'Q',
+    }
   );
 our @cMenuAA = (
-    {   label => "Lock",
-        code  => sub { ToggleLock($_[0]{lockfield}); },
-        check => sub { $::TogLock && $::TogLock eq $_[0]{lockfield} },
+    {
+        label => "Lock",
+        code  => sub {
+            ToggleLock($_[0]{lockfield});
+        },
+        check => sub {
+            $::TogLock && $::TogLock eq $_[0]{lockfield}
+        },
         mode  => 'P',
         test  => sub {
             $_[0]{field} eq $_[0]{lockfield}
-              || $_[0]{gid} == Songs::Get_gid($::SongID, $_[0]{lockfield});
+                || $_[0]{gid} == Songs::Get_gid($::SongID, $_[0]{lockfield});
         },
     },
-    {   label => "Lookup in AMG",
-        code  => sub { AMGLookup($_[0]{mainfield}, $_[0]{aaname}); },
-        test  => sub { $_[0]{mainfield} =~ m/^album$|^artist$|^title$/; },
+    {
+        label => "Lookup in AMG",
+        code  => sub {
+            AMGLookup($_[0]{mainfield}, $_[0]{aaname});
+        },
+        test  => sub {
+            $_[0]{mainfield} =~ m/^album$|^artist$|^title$/;
+        },
     },
-    {   label => "Filter",
+    {
+        label => "Filter",
         code  => sub {
             Select(
-                filter => Songs::MakeFilterFromGID($_[0]{field}, $_[0]{gid}));
+                filter => Songs::MakeFilterFromGID(
+                    $_[0]{field},
+                    $_[0]{gid}
+                )
+            );
         },
         stockicon => 'gmb-filter',
         mode      => 'P'
     },
-    {label => \&SongsSubMenuTitle, submenu => \&SongsSubMenu,},
-    {   label => sub { $_[0]{mode} eq 'P' ? "Display Songs" : "Filter" },
-        code  => \&FilterOnAA,
-        test  => sub { GetSonglist($_[0]{self}) },
+    {
+        label => \&SongsSubMenuTitle,
+        submenu => \&SongsSubMenu,
     },
-    {   label => "Set Picture",
-        code =>
-          sub { ChooseAAPicture($_[0]{ID}, $_[0]{mainfield}, $_[0]{gid}); },
+    {
+        label => sub {
+            $_[0]{mode} eq 'P' ? "Display Songs" : "Filter"
+        },
+        code  => \&FilterOnAA,
+        test  => sub {
+            GetSonglist($_[0]{self})
+        },
+    },
+    {
+        label => "Set Picture",
+        code => sub {
+            ChooseAAPicture(
+                $_[0]{ID},
+                $_[0]{mainfield},
+                $_[0]{gid}
+            );
+        },
         stockicon => 'gmb-picture'
     },
 );
 
 our @TrayMenu = (
-    {   label => sub { $::TogPlay ? "Pause" : "Play" },
+    {
+        label => sub {
+            $::TogPlay ? "Pause" : "Play"
+        },
         code  => \&PlayPause,
-        stockicon =>
-          sub { $::TogPlay ? 'gtk-media-pause' : 'gtk-media-play'; },
+        stockicon => sub {
+            $::TogPlay ? 'gtk-media-pause' : 'gtk-media-play';
+        },
         id => 'playpause'
     },
-    {label => "Stop", code => \&Stop, stockicon => 'gtk-media-stop'},
-    {   label     => "Next",
+    {
+        label => "Stop",
+        code => \&Stop,
+        stockicon => 'gtk-media-stop'
+    },
+    {
+        label     => "Next",
         code      => \&NextSong,
         stockicon => 'gtk-media-next',
         id        => 'next',
     },
-    {   label     => "Recently played",
-        submenu   => sub { my $m = ChooseSongs([GetPrevSongs(8)]); },
+    {
+        label     => "Recently played",
+        submenu   => sub {
+            my $m = ChooseSongs([GetPrevSongs(8)]);
+        },
         stockicon => 'gtk-media-previous'
     },
-    {   label => sub {
+    {
+        label => sub {
             $::TogLock && $::TogLock eq 'first_artist'
-              ? "Unlock Artist"
-              : "Lock Artist";
+                ? "Unlock Artist"
+                : "Lock Artist";
         },
-        code => sub { ToggleLock('first_artist'); }
+        code => sub {
+            ToggleLock('first_artist');
+        }
     },
-    {   label => sub {
-            $::TogLock
-              && $::TogLock eq 'album' ? "Unlock Album" : "Lock Album";
+    {
+        label => sub {
+            $::TogLock && $::TogLock eq 'album'
+                ? "Unlock Album"
+                : "Lock Album";
         },
-        code => sub { ToggleLock('album'); }
+        code => sub {
+            ToggleLock('album');
+        }
     },
-    {   label                => "Windows",
+    {
+        label                => "Windows",
         code                 => \&PresentWindow,
         submenu_ordered_hash => 1,
         submenu              => sub {
-            [   map { $_->layout_name => $_ } grep $_->isa('Layout::Window'),
+            [
+                map {
+                    $_->layout_name => $_
+                } grep $_->isa('Layout::Window'),
+
                 Gtk2::Window->list_toplevels
             ];
         },
     },
-    {   label => sub { IsWindowVisible($::MainWindow) ? "Hide" : "Show" },
-        code  => sub { ShowHide(); },
+    {
+        label => sub {
+            IsWindowVisible($::MainWindow) ? "Hide" : "Show"
+        },
+        code  => sub {
+            ShowHide();
+        },
         id    => 'showhide',
     },
-    {   label     => "Fullscreen",
+    {
+        label     => "Fullscreen",
         code      => \&ToggleFullscreenLayout,
         stockicon => 'gtk-fullscreen'
     },
-    {   label     => "Settings",
+    {
+        label     => "Settings",
         code      => 'OpenPref',
         stockicon => 'gtk-preferences'
     },
-    {label => "Quit", code => \&Quit, stockicon => 'gtk-quit'},
+    {
+        label => "Quit",
+        code => \&Quit,
+        stockicon => 'gtk-quit'
+    },
 );
 
 our %Artists_split = (
