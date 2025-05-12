@@ -2529,68 +2529,123 @@ my @MenuSubGroup = (
 );
 
 our @cMenu = (
-    {   label => "Play",
+    {
+        label => "Play",
         code  => sub {
-            ::Select(filter => $_[0]{filter}, song => 'first', play => 1);
+            ::Select(
+                filter => $_[0]{filter},
+                song => 'first',
+                play => 1
+            );
         },
         isdefined => 'filter',
         stockicon => 'gtk-media-play',
         id        => 'play'
     },
-    {   label => "Append to playlist",
-        code  => sub { ::DoActionForList('addplay', $_[0]{filter}->filter); },
+    {
+        label => "Append to playlist",
+        code  => sub {
+            ::DoActionForList(
+                'addplay',
+                $_[0]{filter}->filter
+            );
+        },
         isdefined => 'filter',
         stockicon => 'gtk-add',
         id        => 'addplay',
     },
-    {   label     => "Enqueue",
-        code      => sub { ::EnqueueFilter($_[0]{filter}); },
+    {
+        label     => "Enqueue",
+        code      => sub {
+            ::EnqueueFilter($_[0]{filter});
+        },
         isdefined => 'filter',
         stockicon => 'gmb-queue',
         id        => 'enqueue',
     },
-    {   label => "Set as primary filter",
+    {
+        label => "Set as primary filter",
         code  => sub {
             my $fp = $_[0]{filterpane};
-            ::SetFilter($_[0]{self}, $_[0]{filter}, 1, $fp->{group});
+            ::SetFilter(
+                $_[0]{self},
+                $_[0]{filter},
+                1,
+                $fp->{group}
+            );
         },
-        test =>
-          sub { my $fp = $_[0]{filterpane}; $fp->{nb} > 1 && $_[0]{filter}; }
+        test => sub {
+            my $fp = $_[0]{filterpane};
+            $fp->{nb} > 1 && $_[0]{filter};
+        }
     },
 
-    #songs submenu :
-    {   label => sub {
+    # songs submenu :
+    {
+        label => sub {
             my $IDs = $_[0]{filter}->filter;
             ::__n("%d song", "%d songs", scalar @$IDs);
         },
         submenu => sub {
-            ::BuildMenuOptional(\@::SongCMenu,
-                {mode => 'F', IDs => $_[0]{filter}->filter});
+            ::BuildMenuOptional(
+                \@::SongCMenu,
+                {
+                    mode => 'F',
+                    IDs => $_[0]{filter}->filter
+                }
+            );
         },
         isdefined => 'filter',
     },
-    {   label   => "Rename folder",
-        code    => sub { ::AskRenameFolder($_[0]{rawpathlist}[0]); },
+    {
+        label   => "Rename folder",
+        code    => sub {
+            ::AskRenameFolder($_[0]{rawpathlist}[0]);
+        },
         onlyone => 'rawpathlist',
-        test    => sub { !$::CmdLine{ro} },
+        test    => sub {
+            !$::CmdLine{ro}
+        },
     },
-    {   label   => "Open folder",
-        code    => sub { ::openfolder($_[0]{rawpathlist}[0]); },
+    {
+        label   => "Open folder",
+        code    => sub {
+            ::openfolder($_[0]{rawpathlist}[0]);
+        },
         onlyone => 'rawpathlist',
     },
 
-#{ label=> _"move folder", code => sub { ::MoveFolder($_[0]{pathlist}[0]); }, onlyone => 'pathlist',	test => sub {!$::CmdLine{ro}}, },
-    {   label    => "Scan for new songs",
-        code     => sub { ::IdleScan(@{$_[0]{rawpathlist}}); },
+    #{
+    #   label    => "Move folder",
+    #   code => sub {
+    #       ::MoveFolder($_[0]{pathlist}[0]);
+    #   },
+    #   onlyone => 'pathlist',
+    #   test => sub {
+    #       !$::CmdLine{ro}
+    #   },
+    #},
+
+    {
+        label    => "Scan for new songs",
+        code     => sub {
+            ::IdleScan(@{$_[0]{rawpathlist}});
+        },
         notempty => 'rawpathlist'
     },
-    {   label     => "Check for updated/removed songs",
-        code      => sub { ::IdleCheck(@{$_[0]{filter}->filter}); },
+    {
+        label     => "Check for updated/removed songs",
+        code      => sub {
+            ::IdleCheck(@{$_[0]{filter}->filter});
+        },
         isdefined => 'filter',
         stockicon => 'gtk-refresh',
+
+        # doesn't really need pathlist, but makes less sense for non-folder pages
         istrue    => 'pathlist'
-    }, #doesn't really need pathlist, but makes less sense for non-folder pages
-    {   label     => "Set Picture",
+    },
+    {
+        label     => "Set Picture",
         stockicon => 'gmb-picture',
         code      => sub {
             my $gid = $_[0]{gidlist}[0];
@@ -2599,17 +2654,25 @@ our @cMenu = (
         onlyone => 'gidlist',
         test    => sub {
             Songs::FilterListProp($_[0]{field}, 'picture')
-              && $_[0]{gidlist}[0] > 0;
+                && $_[0]{gidlist}[0] > 0;
         },
     },
-    {   label => "Auto-select Pictures",
-        code  => sub { ::AutoSelPictures($_[0]{field}, @{$_[0]{gidlist}}); },
+    {
+        label => "Auto-select Pictures",
+        code  => sub {
+            ::AutoSelPictures(
+                $_[0]{field},
+                @{$_[0]{gidlist}}
+            );
+        },
         onlymany => 'gidlist',
-        test     => sub { $_[0]{field} eq 'album' }
-        ,    #test => sub { Songs::FilterListProp($_[0]{field},'picture'); },
+
+        #test => sub { Songs::FilterListProp($_[0]{field},'picture'); },
+        test     => sub { $_[0]{field} eq 'album' },
         stockicon => 'gmb-picture',
     },
-    {   label     => "Set icon",
+    {
+        label     => "Set icon",
         stockicon => 'gmb-picture',
         code      => sub {
             my $gid = $_[0]{gidlist}[0];
@@ -2618,33 +2681,50 @@ our @cMenu = (
         onlyone => 'gidlist',
         test    => sub {
             Songs::FilterListProp($_[0]{field}, 'icon')
-              && $_[0]{gidlist}[0] > 0;
+                && $_[0]{gidlist}[0] > 0;
         },
     },
-    {   label     => "Remove label",
+    {
+        label     => "Remove label",
         stockicon => 'gtk-remove',
         code      => sub {
             my $gid = $_[0]{gidlist}[0];
             ::RemoveLabel($_[0]{field}, $gid);
         },
         onlyone => 'gidlist',
-        test    => sub { $_[0]{field} eq 'label' && $_[0]{gidlist}[0] != 0 }
-        , #FIXME make it generic rather than specific to field label ? #FIXME find a better way to check if gid is special than comparing it to 0
+
+
+        # FIXME make it generic rather than specific to field label ?
+        # FIXME find a better way to check if gid is special than comparing it to 0
+        test    => sub {
+            $_[0]{field} eq 'label' && $_[0]{gidlist}[0] != 0
+        }.
     },
-    {   label => "Rename label",
+    {
+        label => "Rename label",
         code  => sub {
             my $gid = $_[0]{gidlist}[0];
             ::RenameLabel($_[0]{field}, $gid);
         },
         onlyone => 'gidlist',
-        test    => sub { $_[0]{field} eq 'label' && $_[0]{gidlist}[0] != 0 }
-        , #FIXME make it generic rather than specific to field label ? #FIXME find a better way to check if gid is special than comparing it to 0
+
+        # FIXME make it generic rather than specific to field label ?
+        # FIXME find a better way to check if gid is special than comparing it to 0
+        test    => sub {
+            $_[0]{field} eq 'label' && $_[0]{gidlist}[0] != 0
+        }.
     },
 
-#	{ separator=>1 },
+    #{
+    #   separator=>1
+    #},
+
     # only 1 option for folderview so don't put it in option menu
-    {   label   => "Simplify tree",
-        code    => sub { $_[0]{self}->SetOption(simplify => $_[1]); },
+    {
+        label   => "Simplify tree",
+        code    => sub {
+            $_[0]{self}->SetOption(simplify => $_[1]);
+        },
         submenu => [
             never  => "Never",
             smart  => "Only whole levels",
@@ -2655,19 +2735,22 @@ our @cMenu = (
         check                => 'self/simplify',
         istrue               => 'folderview',
     },
-    {   label     => "Options",
+    {
+        label     => "Options",
         submenu   => \@MenuPageOptions,
         stock     => 'gtk-preferences',
         isdefined => 'field'
     },
-    {   label        => "Show buttons",
+    {
+        label        => "Show buttons",
         toggleoption => '!filterpane/hidebb',
         code         => sub {
             my $fp = $_[0]{filterpane};
             $fp->{bottom_buttons}->set_visible(!$fp->{hidebb});
         },
     },
-    {   label        => "Show tabs",
+    {
+        label        => "Show tabs",
         toggleoption => '!filterpane/hidetabs',
         code         => sub {
             my $fp = $_[0]{filterpane};
@@ -2677,8 +2760,7 @@ our @cMenu = (
 );
 
 our @DefaultOptions = (
-    pages =>
-      'savedtree|artists|album|genre|date|label|folder|added|lastplay|rating',
+    pages => 'savedtree|artists|album|genre|date|label|folder|added|lastplay|rating',
     nb         => 1,         # filter level
     min        => 1,         # filter out entries with less than $min songs
     hidebb     => 0,         # hide button box
