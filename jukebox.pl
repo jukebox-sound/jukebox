@@ -1220,7 +1220,7 @@ unshift @SongCMenu
         },
     },
     {
-        label     => "Copy",
+        label     => "Copy To",
         code      => sub {
             CopyMoveFilesDialog($_[0]{IDs}, TRUE);
         },
@@ -1229,7 +1229,7 @@ unshift @SongCMenu
         notmode   => 'P'
     },
     {
-        label    => "Move",
+        label    => "Move To",
         code     => sub {
             CopyMoveFilesDialog($_[0]{IDs}, FALSE);
         },
