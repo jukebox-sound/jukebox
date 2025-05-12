@@ -2609,6 +2609,7 @@ our @cMenu = (
     },
     {
         label   => "Open folder",
+        stockicon => 'gtk-directory',
         code    => sub {
             ::openfolder($_[0]{rawpathlist}[0]);
         },
@@ -2698,7 +2699,7 @@ our @cMenu = (
         # FIXME find a better way to check if gid is special than comparing it to 0
         test    => sub {
             $_[0]{field} eq 'label' && $_[0]{gidlist}[0] != 0
-        }.
+        },
     },
     {
         label => "Rename label",
@@ -2712,7 +2713,7 @@ our @cMenu = (
         # FIXME find a better way to check if gid is special than comparing it to 0
         test    => sub {
             $_[0]{field} eq 'label' && $_[0]{gidlist}[0] != 0
-        }.
+        },
     },
 
     #{
