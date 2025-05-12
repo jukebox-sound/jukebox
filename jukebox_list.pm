@@ -2982,9 +2982,12 @@ sub RemovePage_cb {
     my $pid  = $page->{pid};
     my $col;
     if ($Pages{$pid}) {
-        $col = $Pages{$pid}[1] if $Pages{$pid}[0] eq 'FolderList';
+        $col = $Pages{$pid}[1]
+            if $Pages{$pid}[0] eq 'FolderList';
     }
-    else { $col = $pid; }
+    else {
+        $col = $pid;
+    }
     $nb->remove_page($n);
 }
 
@@ -3017,7 +3020,8 @@ sub button_press_event_cb {
         for my $pid (sort { $pages{$a} cmp $pages{$b} } keys %pages) {
             my $item = Gtk2::ImageMenuItem->new_with_label($pages{$pid});
             $item->set_image(
-                Gtk2::Image->new_from_stock("gmb-tab-$pid", 'menu'));
+                Gtk2::Image->new_from_stock("gmb-tab-$pid", 'menu')
+            );
             $item->signal_connect(
                 activate => sub {
                     my $n = $self->AppendPage($pid);
@@ -3036,7 +3040,17 @@ sub button_press_event_cb {
         $menu->append($item);
     }
 
-#::PopupContextMenu(\@MenuTabbedL, { self=>$self, list=>$listname, pagenb=>$pagenb, page=>$page, pagetype=>$page->{tabbed_page_type} } );
+    #::PopupContextMenu(
+    #   \@MenuTabbedL,
+    #   {
+    #       self => $self,
+    #       list => $listname,
+    #       pagenb => $pagenb,
+    #       page => $page,
+    #       pagetype => $page->{tabbed_page_type}
+    #   }
+    #);
+
     ::PopupMenu($menu, event => $event, nomenupos => 1);
     return 1;
 }
@@ -3065,7 +3079,7 @@ sub SongsChanged_cb {
             $page->{valid} = 0;
             $page->{hash}  = undef;
             ::IdleDo('9_FP' . $self, 1000, \&refresh_current_page, $self)
-              if $page->mapped;
+                if $page->mapped;
         }
     }
 }
@@ -3097,18 +3111,22 @@ sub updatefilter {
     my $group    = $self->{group};
     my $currentf = $::Filters{$group}[$mynb + 1];
     $self->{resetbutton}->set_sensitive(!Filter::is_empty($currentf));
-    my $filt =
-      Filter->newadd(TRUE, map($::Filters{$group}[$_ + 1], 0 .. ($mynb - 1)));
-    return
-      if !$force && $self->{list} && Filter::are_equal($filt, $self->{filter});
+    my $filt = Filter->newadd(
+        TRUE,
+        map($::Filters{$group}[$_ + 1], 0 .. ($mynb - 1))
+    );
+    return if !$force
+           && $self->{list}
+           && Filter::are_equal($filt, $self->{filter});
+
     $self->{filter} = $filt;
 
-    my $lref = $filt->is_empty
-      ? $::Library    #CHECKME use $::Library or a copy ?
-      : $filt->filter;
+    # CHECKME use $::Library or a copy?
+    my $lref = $filt->is_empty ? $::Library : $filt->filter;
     $self->{list} = $lref;
 
-#warn "filter :".$filt->{string}.($filt->{source}?  " with source" : '')." songs=".scalar(@$lref)."\n";
+    #warn "filter :".$filt->{string}.($filt->{source}?  " with source" : '')." songs=".scalar(@$lref)."\n";
+
     $self->invalidate_children;
 }
 
@@ -3118,17 +3136,30 @@ sub invalidate_children {
         $page->{valid} = 0;
         $page->{hash}  = undef;
     }
-    ::IdleDo('9_FP' . $self, 1000, \&refresh_current_page, $self);
+    ::IdleDo(
+        '9_FP' . $self,
+        1000,
+        \&refresh_current_page,
+        $self
+    );
 }
 
 sub update_children {
     my ($self, $min) = @_;
     $self->{min} = $min;
-    if (!$self->{list} || $self->{needupdate}) { $self->updatefilter; return; }
-    warn "Updating FilterPane" . $self->{nb} . "\n" if $::debug;
-    for my $page ($self->get_field_pages) {
-        $page->{valid} = 0;    # set dirty flag for this page
+
+    if (!$self->{list} || $self->{needupdate}) {
+        $self->updatefilter;
+        return;
     }
+
+    warn "Updating FilterPane" . $self->{nb} . "\n"
+        if $::debug;
+
+    for my $page ($self->get_field_pages) {
+        $page->{valid} = 0; # set dirty flag for this page
+    }
+
     $self->refresh_current_page;
 }
 
@@ -3136,7 +3167,7 @@ sub refresh_current_page {
     my $self = shift;
     delete $::ToDo{'9_FP' . $self};
     my ($current) = grep $_->mapped, $self->get_field_pages;
-    if ($current) { $current->Fill }    # update now if page is displayed
+    if ($current) { $current->Fill } # update now if page is displayed
 }
 
 sub get_field_pages {
@@ -3145,7 +3176,7 @@ sub get_field_pages {
 
 sub cleanup {
     my $self = shift;
-    delete $::ToDo{'9_FP' . $self};
+    delete $::ToDo{'9_FP'     . $self};
     delete $::ToDo{'9_FPfull' . $self};
 }
 
@@ -3186,7 +3217,8 @@ sub PopupOpt #Only for FilterList #FIXME should be moved in FilterList::, and/or
       uc(substr $page->{mode}, 0, 1);    # C => cloud, M => mosaic, L => list
     ::PopupContextMenu(
         \@MenuPageOptions,
-        {   self       => $page,
+        {
+            self       => $page,
             aa         => $aa,
             field      => $field,
             mode       => $mode,
@@ -3200,7 +3232,10 @@ sub PopupOpt #Only for FilterList #FIXME should be moved in FilterList::, and/or
 
 package FilterList;
 use base 'Gtk2::Box';
-use constant {GID_ALL => 2**31 - 1, GID_TYPE => 'Glib::Long'};
+use constant {
+    GID_ALL  => 2**31 - 1,
+    GID_TYPE => 'Glib::Long'
+};
 
 our %defaults = (
     mode                  => 'list',
@@ -3225,9 +3260,10 @@ sub new {
 
     $opt = {%defaults, %$opt};
     $self->{$_} = $opt->{$_}
-      for
-      qw/mode noall histogram histogram_ignore_none depth mmarkup mpicsize cloud_min cloud_max cloud_stat no_typeahead rules_hint hscrollbar/;
-    $self->{$_} = [split /\|/, $opt->{$_}] for qw/sort type lmarkup lpicsize/;
+        for qw/mode noall histogram histogram_ignore_none depth mmarkup mpicsize cloud_min cloud_max cloud_stat no_typeahead rules_hint hscrollbar/;
+
+    $self->{$_} = [split /\|/, $opt->{$_}]
+        for qw/sort type lmarkup lpicsize/;
 
     $self->{type}[0]
       ||= $field . '.' . (Songs::FilterListProp($field, 'type') || '');
@@ -3244,15 +3280,18 @@ sub new {
           : 0;
     }
 
-    #search box
+    # search box
     if ($opt->{searchbox} && Songs::FilterListProp($field, 'search')) {
         $self->pack_start(make_searchbox(), ::FALSE, ::FALSE, 1);
     }
     ::Watch($self, 'SearchText_' . $opt->{group}, \&set_text_search);
 
-    #interactive search box
-    $self->{isearchbox} =
-      GMB::ISearchBox->new($opt, $self->{type}[0], 'nolabel');
+    # interactive search box
+    $self->{isearchbox} = GMB::ISearchBox->new(
+        $opt,
+        $self->{type}[0],
+        'nolabel'
+    );
     $self->pack_end($self->{isearchbox}, ::FALSE, ::FALSE, 1);
     $self->signal_connect(key_press_event => \&key_press_cb)
       ;    #only used for isearchbox
@@ -3267,13 +3306,17 @@ sub SaveOptions {
     my %opt;
     $opt{$_} = join '|', @{$self->{$_}} for qw/type lmarkup lpicsize sort/;
     $opt{$_} = $self->{$_}
-      for
-      qw/mode noall histogram histogram_ignore_none depth mmarkup mpicsize cloud_min cloud_max cloud_stat/;
+        for qw/mode noall histogram histogram_ignore_none depth mmarkup mpicsize cloud_min cloud_max cloud_stat/;
+
+    # remove options equal to default value
     for (keys %opt) {
         delete $opt{$_} if $opt{$_} eq $defaults{$_};
-    }    #remove options equal to default value
+    }
+
+    # remove unneeded type options
     delete $opt{type}
-      if $opt{type} eq $self->{pid};    #remove unneeded type options
+        if $opt{type} eq $self->{pid};
+
     return %opt, $self->{isearchbox}->SaveOptions;
 }
 
@@ -3324,12 +3367,16 @@ sub set_mode {
         }
     );    #hide isearchbox when focus goes to the view
 
-    my $drag_type =
-      Songs::FilterListProp($self->{field}[0], 'drag') || ::DRAG_FILTER;
+    my $drag_type = Songs::FilterListProp(
+        $self->{field}[0],
+        'drag'
+    ) || ::DRAG_FILTER;
+
     ::set_drag($view, source => [$drag_type, \&drag_cb]);
+
+    # should be in create_list but must be done after set_drag
     MultiTreeView::init($view, __PACKAGE__)
-      if $mode eq
-      'list';    #should be in create_list but must be done after set_drag
+        if $mode eq 'list';
 
     $child->show_all;
     $self->add($child);
@@ -3343,7 +3390,7 @@ sub create_list {
     my $field = $self->{field}[0];
     my $sw    = Gtk2::ScrolledWindow->new;
 
-#	$sw->set_shadow_type('etched-in');
+    #$sw->set_shadow_type('etched-in');
     $sw->set_policy('automatic', 'automatic');
     ::set_biscrolling($sw);
 
@@ -3352,17 +3399,21 @@ sub create_list {
     $treeview->set_rules_hint(1) if $self->{rules_hint};
     $sw->add($treeview);
     $treeview->set_headers_visible(::FALSE);
-    $treeview->set_search_column(-1)
-      ;    #disable gtk interactive search, use my own instead
+
+    # disable gtk interactive search, use our own instead
+    $treeview->set_search_column(-1);
     $treeview->set_enable_search(::FALSE);
 
-    #$treeview->set('fixed-height-mode' => ::TRUE);	#only if fixed-size column
+    #$treeview->set('fixed-height-mode' => ::TRUE); # only if fixed-size column
     my $renderer = CellRendererGID->new;
     my $column   = Gtk2::TreeViewColumn->new_with_attributes('', $renderer);
 
+    # => $renderer->get('prop')->[0] contains $self->{type} (which is a array ref)
     $renderer->set(
-        prop => [@$self{qw/type lmarkup lpicsize icons hscrollbar/}])
-      ; #=> $renderer->get('prop')->[0] contains $self->{type} (which is a array ref)
+        prop => [
+            @$self{qw/type lmarkup lpicsize icons hscrollbar/}
+        ]
+    );
 
     #$column->add_attribute($renderer, gid => 0);
     $column->set_cell_data_func(
@@ -3371,20 +3422,35 @@ sub create_list {
             my (undef, $cell, $store, $iter) = @_;
             my $gid   = $store->get($iter, 0);
             my $depth = $store->iter_depth($iter);
-            $cell->set(gid => $gid, depth => $depth)
-              ;    # 'is-expander'=> $depth < $store->{depth});
+            $cell->set(
+                gid => $gid,
+                depth => $depth
+               #'is-expander'=> $depth < $store->{depth}
+            );
         }
     );
     $treeview->append_column($column);
     $treeview->signal_connect(row_expanded => \&row_expanded_cb);
 
-#$treeview->signal_connect(row_collapsed => sub { my $store=$_[0]->get_model;my $iter=$_[1]; while (my $iter=$store->iter_nth_child($iter,1)) { $store->remove($iter) } });
+    #$treeview->signal_connect(
+    #   row_collapsed => sub {
+    #       my $store=$_[0]->get_model;
+    #       my $iter=$_[1];
+    #       while (my $iter=$store->iter_nth_child($iter,1)) {
+    #           $store->remove($iter)
+    #       }
+    #   }
+    #);
 
     my $selection = $treeview->get_selection;
     $selection->set_mode('multiple');
     $selection->signal_connect(changed => \&selection_changed_cb);
 
-    $treeview->signal_connect(row_activated => sub { Activate($_[0], 1); });
+    $treeview->signal_connect(
+        row_activated => sub {
+            Activate($_[0], 1);
+        }
+    );
     return $sw, $treeview;
 }
 
@@ -3392,7 +3458,7 @@ sub Activate {
     my ($view, $button) = @_;
     my $self   = ::find_ancestor($view, __PACKAGE__);
     my $filter = $self->get_selected_filters;
-    return unless $filter;    #nothing selected
+    return unless $filter; # nothing selected
     FilterPane::Activate($self, $button, $filter);
 }
 
@@ -3402,8 +3468,13 @@ sub create_cloud {
     my $sw = Gtk2::ScrolledWindow->new;
     $sw->set_policy('never', 'automatic');
     my $sub   = Songs::DisplayFromGID_sub($self->{type}[0]);
-    my $cloud = GMB::Cloud->new(\&child_selection_changed_cb,
-        \&get_fill_data, \&Activate, \&PopupContextMenu, $sub);
+    my $cloud = GMB::Cloud->new(
+        \&child_selection_changed_cb,
+        \&get_fill_data,
+        \&Activate,
+        \&PopupContextMenu,
+        $sub
+    );
     $sw->add_with_viewport($cloud);
     return $sw, $cloud;
 }
@@ -3415,9 +3486,14 @@ sub create_mosaic {
     my $hbox    = Gtk2::HBox->new(0, 0);
     my $vscroll = Gtk2::VScrollbar->new;
     $hbox->pack_end($vscroll, 0, 0, 0);
-    my $mosaic = GMB::Mosaic->new(\&child_selection_changed_cb,
-        \&get_fill_data, \&Activate, \&PopupContextMenu, $self->{type}[0],
-        $vscroll);
+    my $mosaic = GMB::Mosaic->new(
+        \&child_selection_changed_cb,
+        \&get_fill_data,
+        \&Activate,
+        \&PopupContextMenu,
+        $self->{type}[0],
+        $vscroll
+    );
     $hbox->add($mosaic);
     return $hbox, $mosaic;
 }
@@ -3428,21 +3504,33 @@ sub get_cursor_row {
         my ($path) = $self->{view}->get_cursor;
         return $path ? $path->to_string : undef;
     }
-    else { return $self->{view}->get_cursor_row; }
+    else {
+        return $self->{view}->get_cursor_row;
+    }
 }
 
 sub set_cursor_to_row {
     my ($self, $row) = @_;
     if ($self->{mode} eq 'list') {
-        $self->{view}->set_cursor(Gtk2::TreePath->new_from_indices($row));
+        $self->{view}->set_cursor(
+            Gtk2::TreePath->new_from_indices($row)
+        );
     }
-    else { $self->{view}->set_cursor_to_row($row); }
+    else {
+        $self->{view}->set_cursor_to_row($row);
+    }
 }
 
 sub make_searchbox {
-    my $entry = Gtk2::Entry->new;                     #FIXME tooltip
-    my $clear = ::NewIconButton('gtk-clear', undef,
-        sub { $_[0]->{entry}->set_text(''); }, 'none');    #FIXME tooltip
+    my $entry = Gtk2::Entry->new; # FIXME tooltip
+    my $clear = ::NewIconButton(
+        'gtk-clear',
+        undef,
+        sub {
+            $_[0]->{entry}->set_text('');
+        },
+        'none'
+    ); # FIXME tooltip
     $clear->{entry} = $entry;
     my $hbox = Gtk2::HBox->new(0, 0);
     $hbox->pack_end($clear, 0, 0, 0);
@@ -3472,13 +3560,15 @@ sub make_searchbox {
 
 sub set_text_search {
     my ($self, $search, $is_regexp, $is_casesens) = @_;
+
     return
-         if defined $self->{search}
-      && $self->{search} eq $search
-      && !($self->{search_is_regexp} xor $is_regexp)
-      && !($self->{search_is_casesens} xor $is_casesens);
+        if defined   $self->{search}
+                &&   $self->{search} eq $search
+                && !($self->{search_is_regexp} xor $is_regexp)
+                && !($self->{search_is_casesens} xor $is_casesens);
+
     $self->{search}             = $search;
-    $self->{search_is_regexp}   = $is_regexp || 0;
+    $self->{search_is_regexp}   = $is_regexp   || 0;
     $self->{search_is_casesens} = $is_casesens || 0;
     $self->{valid}              = 0;
     $self->Fill if $self->mapped;
@@ -3489,9 +3579,12 @@ sub AAPicture_Changed {
     return if $self->{mode} eq 'cloud';
     return
          unless $self->{valid}
-      && $self->{hash}
-      && $self->{hash}{$key}
-      && $self->{hash}{$key} >= ::find_ancestor($self, 'FilterPane')->{min};
+             && $self->{hash}
+             && $self->{hash}{$key}
+             && $self->{hash}{$key} >= ::find_ancestor(
+                                            $self,
+                                            'FilterPane'
+                                        )->{min};
     $self->queue_draw;
 }
 
@@ -3507,7 +3600,12 @@ sub child_selection_changed_cb {
     my $filter = $self->get_selected_filters;
     return unless $filter;
     my $filterpane = ::find_ancestor($self, 'FilterPane');
-    ::SetFilter($self, $filter, $filterpane->{nb}, $filterpane->{group});
+    ::SetFilter(
+        $self,
+        $filter,
+        $filterpane->{nb},
+        $filterpane->{group}
+    );
 }
 
 sub get_selected_filters {
@@ -3520,16 +3618,23 @@ sub get_selected_filters {
         my @rows  = $sel->get_selected_rows;
         for my $path (@rows) {
             my $iter = $store->get_iter($path);
-            if ($store->get_value($iter, 0) == GID_ALL) { return Filter->new; }
+            if ($store->get_value($iter, 0) == GID_ALL) {
+                return Filter->new;
+            }
             my @parents = $iter;
-            unshift @parents, $iter while $iter = $store->iter_parent($iter);
-            next
-              if grep $sel->iter_is_selected($parents[$_]),
-              0 .. $#parents - 1;    #skip if one parent is selected
+
+            unshift @parents, $iter
+                while $iter = $store->iter_parent($iter);
+
+            next if grep $sel->iter_is_selected($parents[$_]),
+                    0 .. $#parents - 1; # skip if one parent is selected
+
             my @f = map Songs::MakeFilterFromGID(
-                $types->[$_], $store->get_value($parents[$_], 0)
-              ),
-              0 .. $#parents;
+                            $types->[$_],
+                            $store->get_value($parents[$_], 0)
+                        ),
+                        0 .. $#parents;
+
             push @filters, Filter->newadd(1, @f);
         }
     }
@@ -3555,9 +3660,9 @@ sub get_selected_list {
     my $self  = $_[0];
     my $field = $self->{field}[0];
     my @vals;
-    if ($self->{mode} eq
-        'list')   #only returns selected rows if they are all at the same depth
-    {
+
+    # only returns selected rows if they are all at the same depth
+    if ($self->{mode} eq 'list') {
         {
             my $store = $self->{view}->get_model;
             my @iters = map $store->get_iter($_),
@@ -3580,7 +3685,9 @@ sub get_selected_list {
             $field = $self->{field}[$depth];
         }
     }
-    else { @vals = $self->{view}->get_selected }
+    else {
+        @vals = $self->{view}->get_selected
+    }
     return $field, \@vals;
 }
 
@@ -3637,9 +3744,8 @@ sub row_expanded_cb {
         $store->remove($iter);
     }
 
-    if ($depth < $self->{depth}
-        - 1)    #make sure every child has a child if $depth not the deepest
-    {
+    # make sure every child has a child if $depth not the deepest
+    if ($depth < $self->{depth} - 1) {
         for (
             my $iter = $store->iter_children($piter);
             $iter;
