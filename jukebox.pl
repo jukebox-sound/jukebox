@@ -101,8 +101,9 @@ use Encode qw(
     unless (*Gtk2::Widget::set_tooltip_text{CODE}) {
         my $Tooltips = Gtk2::Tooltips->new;
 
-        *Gtk2::Widget::set_tooltip_text =
-          sub { $Tooltips->set_tip($_[0], $_[1]) };
+        *Gtk2::Widget::set_tooltip_text = sub {
+            $Tooltips->set_tip($_[0], $_[1])
+        };
 
         # remove markup
         *Gtk2::Widget::set_tooltip_markup = sub {
@@ -112,8 +113,9 @@ use Encode qw(
             $Tooltips->set_tip($_[0], $markup);
         };
 
-        *Gtk2::ToolItem::set_tooltip_text =
-          sub { $_[0]->set_tooltip($Tooltips, $_[1], ''); };
+        *Gtk2::ToolItem::set_tooltip_text = sub {
+            $_[0]->set_tooltip($Tooltips, $_[1], '');
+        };
 
         *Gtk2::ToolItem::set_tooltip_markup = sub {
             my $markup = $_[1];
@@ -243,7 +245,7 @@ BEGIN {
     no warnings 'redefine';
     my $localedir = $DATADIR;
     $localedir = $FindBin::RealBin . SLASH . '..' . SLASH . 'share'
-      unless -d $localedir . SLASH . 'locale';
+        unless -d $localedir . SLASH . 'locale';
     $localedir .= SLASH . 'locale';
     my $domain = 'jukebox';
     eval { require Locale::Messages; };
@@ -276,14 +278,14 @@ BEGIN {
         Locale::Messages::bindtextdomain($domain => $localedir);
         Locale::Messages::bind_textdomain_codeset($domain => 'utf-8');
         Locale::Messages::bind_textdomain_filter(
-            $domain => \&Locale::Messages::turn_utf_8_on);
+            $domain => \&Locale::Messages::turn_utf_8_on
+        );
         *_   = \&Locale::Messages::gettext;
         *_p  = \&Locale::Messages::pgettext;
         *__  = sub { sprintf Locale::Messages::ngettext(@_), $_[2]; };
         *__p = sub { sprintf Locale::Messages::npgettext(@_), $_[3]; };
         *__n = sub { replace_fnumber(Locale::Messages::ngettext(@_), $_[2]); };
-        *__np =
-          sub { replace_fnumber(Locale::Messages::npgettext(@_), $_[3]); };
+        *__np = sub { replace_fnumber(Locale::Messages::npgettext(@_), $_[3]); };
     }
 }
 
