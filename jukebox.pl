@@ -1305,8 +1305,8 @@ our @cMenuAA = (
         },
         mode  => 'P',
         test  => sub {
-            $_[0]{field} eq $_[0]{lockfield}
-                || $_[0]{gid} == Songs::Get_gid($::SongID, $_[0]{lockfield});
+               $_[0]{field} eq $_[0]{lockfield}
+            || $_[0]{gid} == Songs::Get_gid($::SongID, $_[0]{lockfield});
         },
     },
     {
@@ -1453,9 +1453,12 @@ our %Artists_split = (
     '\s*;\s*'     => ";",
     '\s*/\s*'     => "/",
     '\s*,\s+'     => ", ",
-    ',?\s+and\s+' => "and"
-    , #case-sensitive because the user might want to use "And" in artist names that should NOT be splitted
-    ',?\s+And\s+'     => "And",
+
+    # case-sensitive because the user might want to use "And" in
+    # artist names that should NOT be splitted
+    ',?\s+and\s+' => "and",
+    ',?\s+And\s+' => "And",
+
     '\s+featuring\s+' => "featuring",
     '\s+feat\.\s+'    => "feat.",
     '\s+[Vv][Ss]\s+'  => "VS",
@@ -1475,7 +1478,7 @@ sub callstack { }
 
 sub url_escapeall {
     my $s = $_[0];
-    _utf8_off($s);    # or "use bytes" ?
+    _utf8_off($s); # or "use bytes" ?
     $s =~ s#([^A-Za-z0-9])#sprintf('%%%02X', ord($1))#seg;
     return $s;
 }
