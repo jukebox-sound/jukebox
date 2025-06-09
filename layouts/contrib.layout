@@ -306,7 +306,9 @@ HBSettings	= \
 	VSeparator4 \
 	ExtraButtons(size=large-toolbar) \
 	BMSettings \
-	Quit2(size=large-toolbar,minwidth=34,maxwidth=34,tip=_"Quit")
+	Quit2(size=large-toolbar,tip=_"Quit")
+	#Quit2(size=large-toolbar,minwidth=34,maxwidth=34,tip=_"Quit")
+
 BMSettings	= (icon=gtk-preferences,size="large-toolbar") \
 	SMLibrary \
 	LayoutItem \
