@@ -8,7 +8,7 @@ This *jukebox* distribution is a fork of squentin's *gmusicbrowser* as
 of version 1.1.16 with the following little differences:
   * added Papirus-Light icons
   * added Trinity-like icons to approximate the look and feel to
-    [trinity-gtk-theme](https://github.com/zeppe-lin/trinity-gtk-theme)
+    [trinity-gtk-theme](https://github.com/trinity-theme/trinity-gtk-theme)
   * removed Elementary icons
   * updated Artistinfo plugin: show all available albums from last.fm
     and search Artist on torrent trackers

@@ -28,31 +28,31 @@ plugin's identifier, and ends with C<=cut>.  This block contains
 information about the plugin:
 
   =for gmbplugin PLUGIN_IDENTIFIER
-  name    Plugin Name (e.g., Notify)
-  title   Plugin Title (e.g., Notify plugin)
-  desc    Plugin Description (e.g., Notifies you of the playing song...)
-  req     Dependencies (e.g., perl(Gtk2::Notify))
+  name   Plugin Name (e.g., Notify)
+  title  Plugin Title (e.g., Notify plugin)
+  desc   Plugin Description (e.g., Notifies you of the playing song...)
+  req    Dependencies (e.g., perl(Gtk2::Notify))
   =cut
 
 =over
 
-=item * B<PLUGIN_IDENTIFIER>
+=item B<PLUGIN_IDENTIFIER>
 
 A unique identifier for your plugin (often the same as the plugin's name).
 
-=item * B<name>
+=item B<name>
 
 The internal name of the plugin.
 
-=item * B<title>
+=item B<title>
 
 A user-friendly title for the plugin, displayed in the preferences.
 
-=item * B<desc>
+=item B<desc>
 
 A short description of what the plugin does.
 
-=item * B<req>
+=item B<req>
 
 A list of dependencies required by the plugin.  This can include Perl
 modules (e.g., C<perl(ModuleName)>) or other system packages.
@@ -75,20 +75,20 @@ subroutines:
 
 =over
 
-=item * B<Start()>
+=item B<Start()>
 
 This subroutine is called when the plugin is started by jukebox.  It's
 where you should initialize your plugin, connect to signals, and set
 up any necessary resources.
 
-=item * B<Stop()>
+=item B<Stop()>
 
 This subroutine is called when the plugin is stopped (e.g., when
 jukebox is closed or the plugin is disabled).  You should use this to
 clean up any resources used by your plugin (e.g., unwatch signals,
 undefine objects).
 
-=item * B<prefbox()>
+=item B<prefbox()>
 
 This subroutine should return a Gtk2 widget (typically a
 B<Gtk2::VBox>) containing the preferences dialog for your plugin.
@@ -102,7 +102,7 @@ Jukebox provides several functions and global variables that plugins can use:
 
 =over
 
-=item * B<::Watch($object, $event_name, \&callback)>
+=item B<::Watch($object, $event_name, \&callback)>
 
 This function allows your plugin to monitor events within jukebox.
 When the specified I<$event_name> occurs on the I<$object>, the
@@ -110,76 +110,76 @@ I<\&callback> subroutine will be called.  For example, to watch for
 changes in the playing song, you might use B<::Watch($notify,
 'PlayingSong', \&Changed)>.
 
-=item * B<::UnWatch_all($object)>
+=item B<::UnWatch_all($object)>
 
 This function removes all event watches associated with the given
 I<$object>.
 
-=item * B<::SetDefaultOptions(OPT, ...)>
+=item B<::SetDefaultOptions(OPT, ...)>
 
 This function is used to set default values for your plugin's options.
 The I<OPT> argument is a constant (e.g., C<'PLUGIN_IDENTIFIER_'>) that
 serves as a prefix for your plugin's option names.
 
-=item * B<::NewPrefEntry($option_name, $label, %options)>
+=item B<::NewPrefEntry($option_name, $label, %options)>
 
 Creates a Gtk2 entry widget for a preference setting.
 
-=item * B<::NewPrefSpinButton($option_name, $min, $max, %options)>
+=item B<::NewPrefSpinButton($option_name, $min, $max, %options)>
 
 Creates a Gtk2 spin button widget for a preference setting.
 
-=item * B<::NewPrefCheckButton($option_name, $label, %options)>
+=item B<::NewPrefCheckButton($option_name, $label, %options)>
 
 Creates a Gtk2 check button widget for a preference setting.
 
-=item * B<::ReplaceFields($song_id, $template)>
+=item B<::ReplaceFields($song_id, $template)>
 
 Replaces placeholders (like C<%S> for song title, C<%a> for artist,
 C<%l> for album) in a template string with the metadata of the song
 identified by I<$song_id>.
 
-=item * B<::ReplaceFieldsAndEsc($song_id, $template)>
+=item B<::ReplaceFieldsAndEsc($song_id, $template)>
 
 Similar to B<::ReplaceFields()>, but also escapes any markup in the
 replaced values.
 
-=item * B<$::SongID>
+=item B<$::SongID>
 
 A global variable that holds the ID of the currently playing song.
 
-=item * B<$::Options{OPT . 'option_name'}>
+=item B<$::Options{OPT . 'option_name'}>
 
 A hash containing the user-configured options for your plugin.
 
-=item * B<$::MainWindow>
+=item B<$::MainWindow>
 
 A global variable that might hold the main jukebox window object.
 
-=item * B<::IsWindowVisible($window_object)>
+=item B<::IsWindowVisible($window_object)>
 
 A function to check if a given Gtk2 window object is visible.
 
-=item * Playback Control Functions
+=item B<Playback Control Functions>
 
 Functions like B<::PrevSong()>, B<::Stop()>, B<::NextSong()>,
 B<::PlayPause()> (not seen in the example but likely available) can be
 called to control playback.
 
-=item * B<::ShowHide()>
+=item B<::ShowHide()>
 
 A function to show or hide the main jukebox window.
 
-=item * B<Songs::Get_gid($song_id, $field)>
+=item B<Songs::Get_gid($song_id, $field)>
 
 A function to get the group ID (e.g., for album art) associated with a
 song.
 
-=item * B<AAPicture::pixbuf($type, $gid, $size, $keep_aspect)>
+=item B<AAPicture::pixbuf($type, $gid, $size, $keep_aspect)>
 
 A function to load and resize a picture (e.g., album art).
 
-=item * B<$::Command{CommandName} = [\&callback, "Menu Text"];>
+=item B<$::Command{CommandName} = [\&callback, "Menu Text"];>
 
 Allows you to add custom commands to jukebox's menus.
 
@@ -193,36 +193,45 @@ Allows you to add custom commands to jukebox's menus.
   desc    Does something cool.
   req     perl(Some::Module)
   =cut
-
+  
   package GMB::Plugin::MY_PLUGIN;
-
+  
   use strict;
   use warnings;
-
-  use constant { OPT => 'PLUGIN_MY_PLUGIN_', };
-
-  ::SetDefaultOptions(OPT,
+  
+  use constant {
+      OPT => 'PLUGIN_MY_PLUGIN_',
+  };
+  
+  ::SetDefaultOptions(
+      OPT,
       some_option => 'default value',
   );
-
+  
   sub Start {
       print "MyPlugin started!\n";
       # Initialize resources, connect signals, etc.
   }
-
+  
   sub Stop {
       print "MyPlugin stopped.\n";
       # Clean up resources.
   }
-
+  
   sub prefbox {
       my $vbox = Gtk2::VBox->new(::FALSE, 2);
-      my $entry = ::NewPrefEntry(OPT . 'some_option', "Some Option:",
-          tip => "Enter a value here.");
+      
+      my $entry = ::NewPrefEntry(
+          OPT . 'some_option',
+          "Some Option:",
+          tip => "Enter a value here."
+      );
+      
       $vbox->pack_start($entry, ::FALSE, ::FALSE, 2);
+      
       return $vbox;
   }
-
+  
   1;
 
 =head2 Further Learning

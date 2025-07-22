@@ -1,11 +1,8 @@
-# Copyright (c) Quentin Sculo  <squentin@free.fr>
-# Copyright (c) Alexandr Savca <alexandr.savca89@gmail.com>
-#
-# This file is part of jukebox.
-#
-# jukebox is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3, as
-# published by the Free Software Foundation
+# See COPYING and COPYRIGHT files for corresponding information.
+
+#####################################################################
+# Play_Server                                                       #
+#####################################################################
 
 package Play_Server;
 
@@ -19,87 +16,99 @@ my $cmd = $::DATADIR . ::SLASH . 'iceserver.pl';
 $::PlayPacks{Play_Server} = 1;
 
 sub init {
-    if (-e $cmd) { return bless {}, __PACKAGE__ }
-    else         { return                       }
+	if (-e $cmd) {
+		return bless {}, __PACKAGE__;
+	} else {
+		return;
+	}
 }
 
 sub supported_formats {
-    qw/flac mp3 mpc oga wv ape m4a/;
+	qw/flac mp3 mpc oga wv ape m4a/;
 }
 
 sub Close { }
 
 sub Play {
-    shift;
-    close $fh if $fh;
-    my $file = shift;
-    $ChildPID = open $fh, '-|', $cmd, '-p', $::Options{Icecast_port}, $file;
-    $WatchTag = Glib::IO->add_watch(fileno($fh), 'G_IO_HUP', \&_eos_cb);
+	shift;
+
+	close $fh if $fh;
+
+	my $file = shift;
+
+	$ChildPID = open $fh, '-|', $cmd, '-p', $::Options{Icecast_port}, $file;
+
+	$WatchTag = Glib::IO->add_watch(fileno($fh), 'G_IO_HUP', \&_eos_cb);
 }
 
 sub _eos_cb {
-    Glib::Source->remove($WatchTag)
-        or warn "couldn't remove watcher";
+	Glib::Source->remove($WatchTag) or warn "couldn't remove watcher";
 
-    undef $WatchTag;
-    undef $ChildPID;
-    ::end_of_file_faketime();
-    return 1;
+	undef $WatchTag;
+	undef $ChildPID;
+
+	::end_of_file_faketime();
+
+	return 1;
 }
 
 sub Stop {
-    if ($WatchTag) {
-        Glib::Source->remove($WatchTag)
-            or warn "couldn't remove watcher";
+	if ($WatchTag) {
+		Glib::Source->remove($WatchTag) or warn "couldn't remove watcher";
 
-        undef $WatchTag;
-    }
-    if ($ChildPID) {
-        warn "killing $ChildPID\n"
-            if $::debug;
+		undef $WatchTag;
+	}
 
-       #kill TERM => $ChildPID;
-        kill INT  => $ChildPID;
+	if ($ChildPID) {
+		warn "killing $ChildPID\n" if $::debug;
 
-        Glib::Timeout->add(200, \&_Kill_timeout)
-            unless @pidToKill;
+		#kill TERM => $ChildPID;
+		kill INT  => $ChildPID;
 
-        push @pidToKill, $ChildPID;
-        undef $ChildPID;
-    }
+		Glib::Timeout->add(200, \&_Kill_timeout) unless @pidToKill;
+
+		push @pidToKill, $ChildPID;
+
+		undef $ChildPID;
+	}
 }
 
-sub _Kill_timeout # make sure old children are dead
-{
-    @pidToKill = grep kill(0, $_), @pidToKill;
-    if (@pidToKill) {
-        warn "killing -9 @pidToKill\n"
-            if $::debug;
+# Make sure old children are dead
+sub _Kill_timeout {
+	@pidToKill = grep kill(0, $_), @pidToKill;
 
-        kill KILL => @pidToKill;
-        undef @pidToKill;
-    }
+	if (@pidToKill) {
+		warn "killing -9 @pidToKill\n" if $::debug;
 
-    # read dead children
-    #while (waitpid(-1, WNOHANG)>0) {}
+		kill KILL => @pidToKill;
 
-    return 0;
+		undef @pidToKill;
+	}
+
+	# reap dead children
+	#while (waitpid(-1, WNOHANG)>0) { }
+
+	return 0;
 }
 
-sub Pause  { kill STOP => $ChildPID if $ChildPID }
-sub Resume { kill CONT => $ChildPID if $ChildPID }
+sub Pause  {
+	kill STOP => $ChildPID if $ChildPID
+}
+
+sub Resume {
+	kill CONT => $ChildPID if $ChildPID
+}
+
 sub SkipTo { }
 
 sub SetVolume { }
-sub GetVolume {-1}
 
-sub GetVolumeError {
-    "Can't change the volume in non-gstreamer iceserver mode";
-}
+sub GetVolume { -1 }
 
-sub GetMute {0}
+sub GetVolumeError { "Can't change the volume in non-gstreamer iceserver mode"; }
+
+sub GetMute { 0 }
 
 1;
 
-# vim: sw=4 ts=4 sts=4 et cc=72 tw=70
 # End of file.

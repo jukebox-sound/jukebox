@@ -1,31 +1,28 @@
 #!/usr/bin/env perl
-#
-# Copyright (c) Quentin Sculo  <squentin@free.fr>
-# Copyright (c) Alexandr Savca <alexandr.savca89@gmail.com>
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3, as
-# published by the Free Software Foundation
+# See COPYING and COPYRIGHT files for corresponding information.
 
 use strict;
 use warnings;
 
 use Socket;
 
-use constant { EOL => "\015\012" };
+use constant {
+	EOL => "\015\012"
+};
 
 sub logmsg {
-    print "$0 $$: @_ at ", scalar localtime, "\n"
+	print "$0 $$: @_ at ", scalar localtime, "\n"
 }
 
 my ($file, $sec, $title);
 my $port = 8000;
+
 while (my $arg = shift) {
-    if    ($arg eq '-p')     { $port  = shift || 8000 }
-    elsif ($arg eq '-b')     { shift                  }
-    elsif ($arg eq '-K')     { $sec   = '-k ' . shift }
-    elsif ($arg eq '-title') { $title = shift         }
-    elsif (-f $arg)          { $file  = $arg          }
+	if    ($arg eq '-p')     { $port  = shift || 8000 }
+	elsif ($arg eq '-b')     { shift                  }
+	elsif ($arg eq '-K')     { $sec   = '-k ' . shift }
+	elsif ($arg eq '-title') { $title = shift         }
+	elsif (-f $arg)          { $file  = $arg          }
 }
 
 $title ||= $file;
@@ -52,24 +49,27 @@ logmsg 'connection from ', inet_ntoa($iaddr), " at port $port2";
 # shoutcast and icecast protocol:
 # http://sander.vanzoest.com/talks/2002/audio_and_apache/
 while (<Client>) {
-    #warn $_;
-    last if $_ eq EOL;
+	#warn $_;
+	last if $_ eq EOL;
 }
+
 my $answer =
-    'HTTP/1.0 200 OK'          . EOL
-  . 'Server: iceserver/0.2'    . EOL
-  . "Content-Type: $mime"      . EOL
-  . "x-audiocast-name: $title" . EOL
-  . 'x-audiocast-public: 0'    . EOL;
+	  'HTTP/1.0 200 OK'          . EOL
+	. 'Server: iceserver/0.2'    . EOL
+	. "Content-Type: $mime"      . EOL
+	. "x-audiocast-name: $title" . EOL
+	. 'x-audiocast-public: 0'    . EOL
+	;
+
 send Client, $answer . EOL, 0;
 
 #warn $answer;
 open FILE, $file;
 while (read FILE, $_, 16384) {
-    send Client, $_, 0;
+	send Client, $_, 0;
 }
 close Client;
+
 exit;
 
-# vim: sw=4 ts=4 sts=4 et cc=72 tw=70
 # End of file.

@@ -35,98 +35,98 @@ The options are as follows:
 
 =item B<-c>, B<-nocheck>
 
-don't check for updated/deleted songs on startup
+Don't check for updated/deleted songs on startup.
 
 =item B<-s>, B<-noscan>
 
-don't scan folders for songs on startup
+Don't scan folders for songs on startup.
 
 =item B<-demo>
 
-don't save settings/tags on exit
+Don't save settings/tags on exit.
 
 =item B<-ro>
 
-prevent modifying/renaming/deleting song files
+Prevent modifying/renaming/deleting song files.
 
 =item B<-rotags>
 
-prevent modifying tags of music files
+Prevent modifying tags of music files.
 
 =item B<-play>
 
-start playing on startup
+Start playing on startup.
 
 =item B<-nogst>
 
-do not load any gstreamer librairies
+Don't load any gstreamer libraries.
 
 =item B<-gst0>
 
-prefer gstreamer-0.10 over gstreamer-1.x if both are available
+Prefer gstreamer-0.10 over gstreamer-1.x if both are available.
 
 =item B<-nodbus>
 
-do not use DBus
+Don't use DBus.
 
 =item B<-server>
 
-send playing song to connected icecast client
+Send playing song to connected icecast client.
 
 =item B<-port> I<N>
 
-listen for connection on port N in icecast server mode
+Listen for connection on port N in icecast server mode.
 
 =item B<-C> I<FILE>, B<-cfg> I<FILE>
 
-use FILE as configuration file (instead of F<jukeboxrc> in default
+Use FILE as configuration file (instead of F<jukeboxrc> in default
 folder), if FILE is a folder (or ends with C</>), it will be  used  as
-base  folder instead  of F<~/.config/jukebox/>
+base  folder instead  of F<~/.config/jukebox/>.
 
 =item B<-F> I<FIFO>, B<-fifo> I<FIFO>
 
-use FIFO as named pipe to receive commands (instead of F<jukebox.fifo>
-in default folder)
+Use FIFO as named pipe to receive commands (instead of F<jukebox.fifo>
+in default folder).
 
 =item B<-nofifo>
 
-do not use/create named pipe
+Don't use/create named pipe.
 
 =item B<-dbus-id> I<KEY>
 
-append .KEY to the DBus service id used by jukebox (org.jukebox)
+Append .KEY to the DBus service id used by jukebox (org.jukebox).
 
 =item B<-verbose>
 
-print some info, like the file being played
+Print some info, like the file being played.
 
 =item B<-debug>
 
-print lots of useless information, implies B<-verbose>
+Print lots of useless information, implies B<-verbose>.
 
 =item B<-backtrace>
 
-print a backtrace for every warning
+Print a backtrace for every warning.
 
 =item B<-l> I<NAME>, B<-layout> I<NAME>
 
-use layout NAME for player window
+Use layout NAME for player window.
 
 =item B<-plugin> I<NAME>
 
-deactivate plugin identified by NAME
+Deactivate plugin identified by I<NAME>.
 
 =item B<+plugin> I<NAME>
 
-activate plugin identified by NAME
+Activate plugin identified by I<NAME>.
 
 =item B<-noplugins>
 
-deactivate all plugins
+Deactivate all plugins.
 
 =item B<-searchpath> I<FOLDER>
 
-add FOLDER to the list of folders searched for plugins and layouts
+Add I<FOLDER> to the list of folders searched for plugins and layouts.
 
 =item B<-use-gnome-session>
 
@@ -135,31 +135,32 @@ Gnome2 perl module).
 
 =item B<-workspace> I<N>
 
-Move initial window to workspace N (needs the Gnome2::Wnck perl module).
+Move initial window to workspace I<N> (requires B<Gnome2::Wnck> perl
+module).
 
 =item B<-cmd> I<CMD>
 
-add  CMD  to the list of commands to execute. If a running instance of
-jukebox is found, these commands will be sent via the fifo file or via
-DBus. If there is no running instance of jukebox, the behavior depends
-on option B<-ifnotrunning>
+Add I<CMD> to the list of commands to execute.  If a running instance
+of jukebox is found, these commands will be sent via the fifo file or
+via DBus. If there is no running instance of jukebox, the behavior
+depends on option B<-ifnotrunning>
 
 =item B<-ifnotrunning> I<MODE>
 
-change behavior when no running jukebox instance is found, MODE can be
-one of:
+Change behavior when no running jukebox instance is found, I<MODE> can
+be one of:
 
 =over
 
-=item normal (default)
+=item I<normal> (default)
 
 launch a new instance and execute commands
 
-=item nocmd
+=item I<nocmd>
 
 launch a new instance but discard commands
 
-=item abort
+=item I<abort>
 
 do nothing
 
@@ -171,15 +172,15 @@ or deactivate them.
 
 =item B<-listcmd>
 
-list the available commands and exit
+List the available commands and exit.
 
 =item B<-listlayout>
 
-list the available layouts and exit
+List the available layouts and exit.
 
 =item B<-listplugin>
 
-list the available plugins and exit
+List the available plugins and exit.
 
 =item B<-tagedit> I<FOLDER_OR_FILE> ...
 
@@ -193,20 +194,20 @@ Load songs in FOLDER_OR_FILE and display a dialog to edit their tags.
 
 =item F<~/.jukebox/tags>
 
-contains songs tags and program options
+Contains songs tags and program options.
 
 =item F</usr/share/jukebox/plugins/>, F<~/.jukebox/plugins/>
 
-files with extension .pm in these folders are loaded as plugins on
-startup
+Files with extension B<.pm> in these folders are loaded as plugins on
+startup.
 
 =item F</usr/share/jukebox/layouts/*.layout>, F<~/.jukebox/layouts/*.layout>
 
-contains layouts definitions
+Contains layouts definitions.
 
 =item F<~/.jukebox/jukebox.fifo>
 
-can be used to send commands to a running jukebox, e.g.:
+Can be used to send commands to a running jukebox, e.g.:
 
   echo CMD >~/.jukebox/jukebox.fifo
 
@@ -217,7 +218,7 @@ commands):
 
 =item NextSong
 
-Skip current song
+skip current song
 
 =item PrevSong
 
@@ -255,9 +256,9 @@ quit jukebox
 
 immediately save settings/song tags in F<~/.jukebox/tags>
 
-=item ChangeDisplay DISPLAY
+=item ChangeDisplay I<DISPLAY>
 
-migrate the program to display DISPLAY (example : ":1")
+migrate the program to display I<DISPLAY> (example: C<:1>)
 
 =back
 
@@ -265,7 +266,7 @@ migrate the program to display DISPLAY (example : ":1")
 
 =head1 SEE ALSO
 
-L<https://github.com/zeppe-lin/jukebox>
+L<https://github.com/jukebox-sound/jukebox>
 
 =head1 AUTHORS
 

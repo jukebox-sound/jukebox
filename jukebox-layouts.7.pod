@@ -23,7 +23,7 @@ Note that this documentation is likely incomplete, and could be
 improved.  Don't hesitate to suggest improvements, ask for
 clarification, or point out missing informations.
 
-=head3 B<Advice for testing layouts>
+=head2 Advice for testing layouts
 
 Experimenting with layouts is highly encouraged.  When doing so, it is
 recommended to launch jukebox from the command-line as some layout
@@ -31,14 +31,14 @@ errors can be printed on the terminal.  A good way to do that is
 launch jukebox with the B<-layout> (or B<-l>) followed by the layout
 identifier, this will directly open the desired layout.
 
-You can then easily quit without saving by pressing ctrl-c in the
+You can then easily quit without saving by pressing B<C-c> in the
 terminal, an advantage of this exit method is that it always works (no
 matter what your layout contains) and that no setting for the layout
 will be saved, so that you can see it each time as a new user would.
 Note that the auto-save plugin might still save the options, the
-B<-demo> option will prevent any writing of the jukeboxrc.  You can
-also use a copy of your jukeboxrc file and use the B<-cfg> option to
-tell jukebox to use the copy.
+B<-demo> option will prevent any writing of the I<jukeboxrc>.  You can
+also use a copy of your I<jukeboxrc> file and use the B<-cfg> option
+to tell B<jukebox> to use the copy.
 
 =head2 Layout files
 
@@ -57,6 +57,8 @@ The default layouts included with jukebox.
 Custom layouts that can be added by putting them in
 I<~/.config/jukebox/layouts>, which can be either a file or a folder
 containing multiple I<.layout> files (read in alphabetical order).
+
+=back
 
 =head2 Layout syntax
 
@@ -537,14 +539,14 @@ Pairs of keys and action, example :
 
 Key names are as shown in the key binding tab in the settings dialog.
 
-Modifiers are one lower case letter : c for ctrl, s for shift, a for
-alt and w for win/super.
+Modifiers are one lower case letter: B<c> for ctrl, B<s> for shift,
+B<a> for alt and B<w> for win/super.
 
 The modifier(s) and key name can be preceded by a '+' to make the
-shortcut a higher priority than the normal shorcuts for the focused
-widget (example: "+c-f" for a control-f that overrides the default
-ctrl-f action of some widgets).  Warning: It may breaks some features
-or the keyboard navigation.  
+shortcut a higher priority than the normal shortcuts for the focused
+widget (example: "+c-f" for a ctrl-f that overrides the default B<C-f>
+action of some widgets).  B<Warning>: It may breaks some features or
+the keyboard navigation.
 
 Commands can be found by running jukebox with command-line option
 `-listcmd`.
@@ -992,7 +994,7 @@ Note that %c and %f are not meant to be used for displaying.
 
 $-words : the word can be any of the activated field name, see the fields tab of the settings dialog.
 
-%-letters :
+%-letters:
 
 	t	title
 	a	artist

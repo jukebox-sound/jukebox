@@ -1,11 +1,8 @@
-# Copyright (c) Quentin Sculo  <squentin@free.fr>
-# Copyright (c) Alexandr Savca <alexandr.savca89@gmail.com>
-#
-# This file is part of jukebox.
-#
-# jukebox is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3, as
-# published by the Free Software Foundation
+# See COPYING and COPYRIGHT files for corresponding information.
+
+######################################################################
+# Tag::APEfile                                                       #
+######################################################################
 
 package Tag::APEfile;
 
@@ -16,91 +13,94 @@ our @ISA = ('Tag::MP3');
 my %compression;
 
 INIT {
-    %compression = (
-        1000 => 'Fast',
-        2000 => 'Normal',
-        3000 => 'High',
-        4000 => 'Extra High',
-        5000 => 'Insane',
-    );
+	%compression = (
+		1000 => 'Fast',
+		2000 => 'Normal',
+		3000 => 'High',
+		4000 => 'Extra High',
+		5000 => 'Insane',
+	);
 }
 
 sub new {
-    my ($class, $file, $findlength) = @_;
-    my $self = bless {}, $class;
-    local $_;
+	my ($class, $file, $findlength) = @_;
+	my $self = bless {}, $class;
+	local $_;
 
-    # check that the file exists
-    unless (-e $file) {
-        warn "File '$file' does not exist.\n";
-        return undef;
-    }
-    $self->{filename} = $file;
-    $self->_open or return undef;
+	# check that the file exists
+	unless (-e $file) {
+		warn "File '$file' does not exist.\n";
 
-    $self->_FindTags;
-    $self->_ReadHeader;
-    return undef unless $self->{info};
-    $self->_close;
-    return $self;
+		return undef;
+	}
+
+	$self->{filename} = $file;
+	$self->_open or return undef;
+
+	$self->_FindTags;
+	$self->_ReadHeader;
+
+	return undef unless $self->{info};
+
+	$self->_close;
+
+	return $self;
 }
 
 sub _ReadHeader {
-    my $self   = $_[0];
-    my $fh     = $self->{fileHandle};
-    my $offset = $self->{startaudio};
-    seek $fh, $offset, 0;
-    my $buf;
-    return unless read($fh, $buf, 32) == 32;
-    my ($sig, $v, $desc_size) = unpack 'a4vx2v', $buf;
-    return unless $sig eq 'MAC ';
-    my ($compression, $blocksperframe, $finalsblocks, $nbframes,
-        $channels, $freq);
+	my $self   = $_[0];
+	my $fh     = $self->{fileHandle};
+	my $offset = $self->{startaudio};
 
-    if ($v < 3980) {
-        # old header
-        ($compression, $channels, $freq, $nbframes, $finalsblocks) =
-          unpack 'x6vx2vVx8VV', $buf;
+	seek $fh, $offset, 0;
 
-        if ($v >= 3950) {
-            $blocksperframe = 73728 * 4;
-        }
-        elsif ($v >= 3900 || ($v >= 3800 && $compression == 4000)) {
-            $blocksperframe = 73728;
-        }
-        else {
-            $blocksperframe = 9216;
-        }
-    }
-    else {
-        seek $fh, $desc_size - 32, 1;
-        return unless read($fh, $buf, 24) == 24;
+	my $buf;
+	return unless read($fh, $buf, 32) == 32;
 
-        ($compression, $blocksperframe, $finalsblocks, $nbframes,
-            $channels, $freq) = unpack 'vx2VVVx2vV', $buf;
-    }
-    my $bitrate = my $seconds = 0;
-    my $blocks  = ($nbframes - 1) * $blocksperframe + $finalsblocks;
-    if ($blocks & $freq) {
-        $seconds = $blocks / $freq;
-        $bitrate =
-            ($self->{endaudio} - $self->{startaudio}) * 8 / $seconds;
-    }
-    my %info = (
-        version     => $v / 1000,
-        channels    => $channels,
-        frames      => $nbframes,
-        rate        => $freq,
-        seconds     => $seconds,
-        bitrate     => $bitrate,
-        compression => $compression{$compression} || $compression,
-    );
+	my ($sig, $v, $desc_size) = unpack 'a4vx2v', $buf;
+	return unless $sig eq 'MAC ';
 
-    #warn "$_=$info{$_}\n" for keys %info;
-    $self->{info} = \%info;
+	my ($compression, $blocksperframe, $finalsblocks, $nbframes, $channels, $freq);
+
+	if ($v < 3980) {
+		# old header
+		($compression, $channels, $freq, $nbframes, $finalsblocks) = unpack 'x6vx2vVx8VV', $buf;
+
+		if ($v >= 3950) {
+			$blocksperframe = 73728 * 4;
+		} elsif ($v >= 3900 || ($v >= 3800 && $compression == 4000)) {
+			$blocksperframe = 73728;
+		} else {
+			$blocksperframe = 9216;
+		}
+	} else {
+		seek $fh, $desc_size - 32, 1;
+		return unless read($fh, $buf, 24) == 24;
+
+		($compression, $blocksperframe, $finalsblocks, $nbframes, $channels, $freq) = unpack 'vx2VVVx2vV', $buf;
+	}
+
+	my $bitrate = my $seconds = 0;
+	my $blocks  = ($nbframes - 1) * $blocksperframe + $finalsblocks;
+	if ($blocks & $freq) {
+		$seconds = $blocks / $freq;
+		$bitrate = ($self->{endaudio} - $self->{startaudio}) * 8 / $seconds;
+	}
+	my %info = (
+		version     => $v / 1000,
+		channels    => $channels,
+		frames      => $nbframes,
+		rate        => $freq,
+		seconds     => $seconds,
+		bitrate     => $bitrate,
+		compression => $compression{$compression} || $compression,
+	);
+
+	#warn "$_ = $info{$_}\n" for keys %info;
+
+	$self->{info} = \%info;
 }
 
 1;
 
-# vim: sw=4 ts=4 sts=4 et cc=72 tw=70
 # End of file.

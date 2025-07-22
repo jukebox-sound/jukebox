@@ -26,3 +26,4 @@ CustomKeyBindings:
   c-e: RunPerlCode(OpenSpecialWindow('Equalizer');)
   c-r: RunPerlCode(IdleCheck(); IdleScan();)
 
+# End of file.
