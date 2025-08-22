@@ -12035,7 +12035,9 @@ sub PrefLibrary {
 		return if $changed_key && $changed_key ne 'LibraryPath';
 
 		$store->clear;
-		$store->set($store->append, 0, $_, 1, filename_to_utf8displayname(decode_url($_))) for sort @{$Options{LibraryPath}};
+
+		$store->set($store->append, 0, $_, 1, filename_to_utf8displayname(decode_url($_)))
+			for sort @{$Options{LibraryPath}};
 	};
 
 	$refresh->($store);
