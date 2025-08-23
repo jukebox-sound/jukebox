@@ -54,6 +54,7 @@ sub prefbox {
 	my $entry1 = ::NewPrefEntry(
 		OPT . 'tocmd_label',
 		'Menu entry name:',
+		width => 22,
 		sizeg1 => $sg1,
 		sizeg2 => $sg2,
 		tip => "Name under which the command will appear in the menu"
@@ -62,6 +63,7 @@ sub prefbox {
 	my $entry2 = ::NewPrefEntry(
 		OPT . 'tocmd_cmd',
 		'System command:',
+		width => 22,
 		sizeg1 => $sg1,
 		sizeg2 => $sg2,
 		tip => "These fields can be used:\n"
