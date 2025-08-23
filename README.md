@@ -17,6 +17,7 @@ of version 1.1.16 with the following little differences:
   * added new option "minimize main window instead of hide"
   * ported gmusicbrowser's little fixes and adjustments for new mpv
     versions, fixed compatibility with mpv>=0.39.0
+  * added Spek plugin
 
 The original sources can be downloaded from:
   1. https://github.com/squentin/gmusicbrowser
