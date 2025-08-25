@@ -79,10 +79,14 @@ Plugins:
     allowing to search the picture/cover in various sources and save
     it
   * Rip: add a button to rip a CD
+  * Spek: call Spek[1] (Acoustic Spectrum Analyser) from song
+    contextual menu
   * Titlebar: display a special layout in or around the titlebar of
     the focused window
   * Web context: provide context views using MozEmbed or WebKit
     wikipedia, lyrics, and custom webpages
+
+[1]: https://www.spek.cc/
 
 
 REQUIREMENTS
@@ -121,6 +125,9 @@ To consult wikipedia pages and search google for lyrics, one of:
 To control jukebox through DBus or use the included gnome multimedia
 keys plugin:
   * Net::DBus perl bindings
+
+To call Spek (Acoustic Spectrum Analyser) from song contextual menu:
+  * Spek
 
 
 INSTALL
