@@ -126,6 +126,9 @@ To control jukebox through DBus or use the included gnome multimedia
 keys plugin:
   * Net::DBus perl bindings
 
+CD ripping capability:
+  * grip, or sound-juicer, or xcfa, or custom command
+
 To call Spek (Acoustic Spectrum Analyser) from song contextual menu:
   * Spek
 
