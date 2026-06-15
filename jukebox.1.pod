@@ -8,19 +8,17 @@ jukebox - music player for large collections of music files
 
 =head1 SYNOPSIS
 
-=over
+B<jukebox> [B<-nocheck>] [B<-noscan>] [B<-demo>] [B<-ro>] [B<-rotags>]
+[B<-play>] [B<-nodbus>] [B<-gst0> | B<-nogst>] [B<-server>]
+[B<-port> I<N>] [B<-cfg> I<FILE>] [B<-fifo> I<FIFO> | B<-nofifo>]
+[B<-debug>] [B<-verbose>] [B<-layout> I<NAME>] [B<-plugin> I<NAME>]
+[B<-searchpath> I<FOLDER>] [B<-use-gnome-session>]
+[B<-workspace> I<N>] [B<-cmd> I<CMD>] [B<-ifnotrunning> I<MODE>]
+[B<-dbus-id> <KEY>] I<FOLDER> | I<FILE> ...
 
-=item B<jukebox> [-nocheck] [-noscan] [-demo] [-ro] [-rotags] [-play]
-[-nodbus] [-gst0|-nogst] [-server] [-port N] [-cfg FILE]
-[-fifo FIFO|-nofifo] [-debug] [-verbose] [-layout NAME] [-plugin NAME]
-[-searchpath FOLDER] [-use-gnome-session] [-workspace N] [-cmd CMD]
-[-ifnotrunning MODE] [-dbus-id KEY] FOLDER_OR_FILE ...
+B<jukebox> [B<-listcmd>]
 
-=item B<jukebox> [-listcmd]
-
-=item B<jukebox> -tagedit FOLDER_OR_FILE ...
-
-=back
+B<jukebox> B<-tagedit> I<FOLDER> | I<FILE> ...
 
 =head1 DESCRIPTION
 
@@ -79,14 +77,14 @@ Listen for connection on port N in icecast server mode.
 
 =item B<-C> I<FILE>, B<-cfg> I<FILE>
 
-Use FILE as configuration file (instead of F<jukeboxrc> in default
-folder), if FILE is a folder (or ends with C</>), it will be  used  as
-base  folder instead  of F<~/.config/jukebox/>.
+Use I<FILE> as configuration file (instead of F<jukeboxrc> in default
+folder), if I<FILE> is a folder (or ends with C</>), it will be used
+as base folder instead of F<~/.config/jukebox/>.
 
 =item B<-F> I<FIFO>, B<-fifo> I<FIFO>
 
-Use FIFO as named pipe to receive commands (instead of F<jukebox.fifo>
-in default folder).
+Use I<FIFO> as named pipe to receive commands (instead of
+F<jukebox.fifo> in default folder).
 
 =item B<-nofifo>
 
@@ -94,7 +92,7 @@ Don't use/create named pipe.
 
 =item B<-dbus-id> I<KEY>
 
-Append .KEY to the DBus service id used by jukebox (org.jukebox).
+Append .I<KEY> to the DBus service id used by jukebox (org.jukebox).
 
 =item B<-verbose>
 
@@ -110,7 +108,7 @@ Print a backtrace for every warning.
 
 =item B<-l> I<NAME>, B<-layout> I<NAME>
 
-Use layout NAME for player window.
+Use layout I<NAME> for player window.
 
 =item B<-plugin> I<NAME>
 
@@ -140,10 +138,11 @@ module).
 
 =item B<-cmd> I<CMD>
 
-Add I<CMD> to the list of commands to execute.  If a running instance
-of jukebox is found, these commands will be sent via the fifo file or
-via DBus. If there is no running instance of jukebox, the behavior
-depends on option B<-ifnotrunning>
+Add I<CMD> to the list of commands to execute.
+If a running instance of jukebox is found, these commands will be sent
+via the fifo file or via DBus.
+If there is no running instance of jukebox, the behavior depends on
+option B<-ifnotrunning>
 
 =item B<-ifnotrunning> I<MODE>
 

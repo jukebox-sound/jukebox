@@ -27,12 +27,12 @@ The metadata block starts with C<=for gmbplugin> followed by the
 plugin's identifier, and ends with C<=cut>.  This block contains
 information about the plugin:
 
-  =for gmbplugin PLUGIN_IDENTIFIER
-  name   Plugin Name (e.g., Notify)
-  title  Plugin Title (e.g., Notify plugin)
-  desc   Plugin Description (e.g., Notifies you of the playing song...)
-  req    Dependencies (e.g., perl(Gtk2::Notify))
-  =cut
+    =for gmbplugin PLUGIN_IDENTIFIER
+    name   Plugin Name (e.g., Notify)
+    title  Plugin Title (e.g., Notify plugin)
+    desc   Plugin Description (e.g., Notifies of the playing song.)
+    req    Dependencies (e.g., perl(Gtk2::Notify))
+    =cut
 
 =over
 
@@ -107,8 +107,9 @@ Jukebox provides several functions and global variables that plugins can use:
 This function allows your plugin to monitor events within jukebox.
 When the specified I<$event_name> occurs on the I<$object>, the
 I<\&callback> subroutine will be called.  For example, to watch for
-changes in the playing song, you might use B<::Watch($notify,
-'PlayingSong', \&Changed)>.
+changes in the playing song, you might use:
+
+    ::Watch($notify, 'PlayingSong', \&Changed)
 
 =item B<::UnWatch_all($object)>
 
