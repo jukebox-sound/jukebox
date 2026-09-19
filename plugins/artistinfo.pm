@@ -914,7 +914,7 @@ sub similar_artist_local_markup {
 	my $stats = AA::ReplaceFields(
 		$gid,
 		' <span foreground="' . $fgcolor . '">(%X « %s)</span>',
-		"artist",
+		"artists",
 		1
 	);
 
