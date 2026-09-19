@@ -1,10 +1,15 @@
-# project metadata
+# Project metadata
 NAME        = jukebox
 VERSION     = 1.1.15.3
 DIST        = ${NAME}-${VERSION}
 
-# paths
+# Installation paths.  All paths are relative to PREFIX unless
+# explicitly overridden by the packager.
 PREFIX      = /usr
-MANPREFIX   = ${PREFIX}/share/man
+BINDIR      = ${PREFIX}/bin
 DATADIR     = ${PREFIX}/share
-BASHCOMPDIR = ${PREFIX}/share/bash-completion/completions
+JUKEBOXDATA = ${DATADIR}/${NAME}
+APPDIR      = ${DATADIR}/applications
+ICONDIR     = ${DATADIR}/icons/hicolor
+MANPREFIX   = ${DATADIR}/man
+DOCDIR      = ${DATADIR}/doc/${NAME}
