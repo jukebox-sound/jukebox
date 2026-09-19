@@ -904,17 +904,108 @@ sub set_buffer {
 	$self->{buffer}->set_modified(0);
 }
 
-sub similar_artist_local_markup {
-	my ($name, $gid) = @_;
+# A local artist can be present as a literal track credit (artist), as a
+# participant derived from a split credit/title (artists), or both. Similar
+# Artists must treat those relations as one local presence.
+sub local_artist_presence {
+	my ($gid) = @_;
+	return unless defined $gid;
 
-	my $stats = AA::ReplaceFields(
-		$gid,
-		' <span size="small">(%X « %s)</span>',
-		"artists",
-		1
+	my $filter = Filter->newadd(
+		0,
+		Songs::MakeFilterFromGID('artist',  $gid),
+		Songs::MakeFilterFromGID('artists', $gid)
+	);
+	my $ids = $filter->filter;
+
+	return {
+		filter => $filter,
+		ids    => $ids,
+		albums => scalar @{Songs::UniqList('album', $ids)},
+		songs  => scalar @$ids,
+	};
+}
+
+sub resolve_local_artist {
+	my ($remote_name, $index) = @_;
+	my $resolved = resolve_artist($remote_name, $index);
+	return unless $resolved;
+
+	my $presence = local_artist_presence($resolved->{gid});
+	return unless $presence && $presence->{songs};
+
+	$resolved->{presence} = $presence;
+	return $resolved;
+}
+
+sub similar_artist_local_markup {
+	my ($name, $presence) = @_;
+
+	my $albums = ::__n(
+		'%d Album',
+		'%d Albums',
+		$presence->{albums}
+	);
+	my $songs = ::__n(
+		'%d song',
+		'%d songs',
+		$presence->{songs}
 	);
 
-	return ::PangoEsc($name) . $stats;
+	return ::PangoEsc($name)
+	  . ' <span size="small">('
+	  . ::PangoEsc($albums)
+	  . ' « '
+	  . ::PangoEsc($songs)
+	  . ')</span>';
+}
+
+sub similar_artist_local_menu {
+	my ($treeview, $gid, $presence) = @_;
+
+	my @menu = (
+		{
+			label => 'Filter',
+			code  => sub {
+				::SetFilter($treeview, $presence->{filter}, 1);
+			},
+			stockicon => 'gmb-filter',
+		},
+		{
+			label => ::__n('%d song', '%d songs', $presence->{songs}),
+			submenu => sub {
+				::BuildMenuOptional(
+					\@::SongCMenu,
+					{
+						self => $treeview,
+						mode => 'S',
+						IDs  => $presence->{ids},
+					}
+				);
+			},
+		},
+		{
+			label => 'Search on the web',
+			submenu => sub {
+				CreateSearchMenu(Songs::Gid_to_Get('artist', $gid));
+			},
+		},
+		{
+			label => 'Lookup in AMG',
+			code  => sub {
+				::AMGLookup('artist', Songs::Gid_to_Get('artist', $gid));
+			},
+		},
+		{
+			label => 'Set Picture',
+			code  => sub {
+				::ChooseAAPicture(undef, 'artist', $gid);
+			},
+			stockicon => 'gmb-picture',
+		},
+	);
+
+	return ::BuildMenu(\@menu, {self => $treeview, mode => 'S'});
 }
 
 sub tv_contextmenu {
@@ -932,20 +1023,15 @@ sub tv_contextmenu {
 
 	if ($event->button == 2) {
 		if ($url eq "local") {
-			my $filter = Songs::MakeFilterFromGID('artists', $aID);
-			::SetFilter($treeview, $filter, 1);
+			my $presence = local_artist_presence($aID);
+			::SetFilter($treeview, $presence->{filter}, 1) if $presence;
 		}
 		return 1;
 	} elsif ($event->button == 3) {
 		if ($url eq "local") {
-			::PopupAAContextMenu(
-				{
-					gid   => $aID,
-					self  => $treeview,
-					field => 'artists',
-					mode  => 'S'
-				}
-			);
+			my $presence = local_artist_presence($aID);
+			my $menu = similar_artist_local_menu($treeview, $aID, $presence);
+			::PopupMenu($menu, self => $treeview, event => $event);
 
 			return 0;
 		} else {
@@ -967,7 +1053,7 @@ sub tv_contextmenu {
 					return unless defined $remote;
 
 					$::Options{OPT . 'ArtistAliases'}{$remote} = $local;
-					my $resolved = resolve_artist($remote);
+					my $resolved = resolve_local_artist($remote);
 					return unless $resolved;
 
 					$store->set(
@@ -975,7 +1061,7 @@ sub tv_contextmenu {
 						0,
 						similar_artist_local_markup(
 							$resolved->{local_name},
-							$resolved->{gid}
+							$resolved->{presence}
 						),
 						2,
 						"local",
@@ -1490,14 +1576,17 @@ sub loaded {
             next unless $s_artist{name};
 
             if ($s_artist{match} >= $::Options{OPT . 'SimilarRating'} / 100) {
-                my $resolved = resolve_artist($s_artist{name}, $artist_index);
+                my $resolved = resolve_local_artist($s_artist{name}, $artist_index);
                 my $aID = $resolved ? $resolved->{gid} : undef;
                 my $display_name = $resolved ? $resolved->{local_name} : $s_artist{name};
                 if ($aID) {
                     $s_artist{url} = "local";
                     $self->{store}->set(
                         $self->{store}->append,               0,
-                        similar_artist_local_markup($display_name, $aID), 1,
+                        similar_artist_local_markup(
+                            $display_name,
+                            $resolved->{presence}
+                        ),                                   1,
                         $s_artist{match} * 100,               2,
                         $s_artist{url},                       3,
                         $aID,                                 4,
@@ -1646,7 +1735,7 @@ sub PopulateQueue {
 
 	my $nb = $::Options{MaxAutoFill} - @$::Queue;
 	return unless $nb > 0;
-	my @artist_gids;
+	my @artist_filters;
 	my $artist_index = build_local_artist_index();
 	for my $s_artist (split /<\/artist>/, $data) {
 		my %s_artist;
@@ -1655,15 +1744,22 @@ sub PopulateQueue {
 		next unless $s_artist{name};
 
 		if ($s_artist{match} >= $::Options{OPT . 'SimilarRating'} / 100) {
-			my $resolved = resolve_artist($s_artist{name}, $artist_index);
-			push(@artist_gids, $resolved->{gid}) if $resolved;
+			my $resolved = resolve_local_artist($s_artist{name}, $artist_index);
+			push(@artist_filters, $resolved->{presence}{filter}) if $resolved;
 		}
 	}
 
-	# add currently playing artist as well
-	push(@artist_gids, Songs::Get_gid($::SongID, 'artist')) unless $::Options{OPT . 'SimilarExcludeSeed'};
+	# Keep the seed on its literal track credit. Expanding a composite seed
+	# into all of its participants would broaden autofill beyond the seed
+	# artist Last.fm was queried for.
+	push(
+		@artist_filters,
+		Songs::MakeFilterFromGID('artist', Songs::Get_gid($::SongID, 'artist'))
+	) unless $::Options{OPT . 'SimilarExcludeSeed'};
 
-	my $filter = Filter->newadd(0,  map Songs::MakeFilterFromGID("artist", $_), @artist_gids);
+	return unless @artist_filters;
+
+	my $filter = Filter->newadd(0, @artist_filters);
 	my $random = Random->new('random:', $filter->filter($::ListPlay));
 
 	# add queue and current song to blacklist (won't draw)
