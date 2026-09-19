@@ -22,7 +22,7 @@ the queue, equalizer).
 
 Note that this documentation is likely incomplete, and could be
 improved.  Don't hesitate to suggest improvements, ask for
-clarification, or point out missing informations.
+clarification, or point out missing information.
 
 =head2 Advice for testing layouts
 
@@ -53,10 +53,10 @@ found in 2 places:
 
 The default layouts included with jukebox.
 
-=item I<~/.config/jukebox/layouts/>
+=item I<$XDG_CONFIG_HOME/jukebox/layouts/>
 
 Custom layouts that can be added by putting them in
-I<~/.config/jukebox/layouts>, which can be either a file or a folder
+I<$XDG_CONFIG_HOME/jukebox/layouts>, which can be either a file or a folder
 containing multiple I<.layout> files (read in alphabetical order).
 
 =back
@@ -66,10 +66,8 @@ containing multiple I<.layout> files (read in alphabetical order).
 A layout definition begins with a line containing a layout identifier
 enclosed in square brackets (B<[]>) such as: B<[some_layout_id]>.
 
-Layouts files may also contain group and column definition for the
-SongTree widget (see the
-L<SongTree documentation|http://wiki.gmusicbrowser.org/customization/songtree>
-for details).  These group and column definitions begin with lines
+Layout files may also contain group and column definitions for the
+SongTree widget.  These definitions begin with lines
 between B<{}>.  The definitions include all the following lines up to
 the next B<[]> or B<{}> line, or to the end of the file.
 
@@ -80,18 +78,18 @@ Layout definition syntax:
     key2 = value
     ...
 
-`layout_id` is the string used to identify the layout.  It can contain
+C<layout_id> is the string used to identify the layout.  It can contain
 spaces or other special characters but it is recommended that only
-alphanumeric characters (`A-Z`, `a-z`, `0-9` and `_`) be used,
+alphanumeric characters (C<A-Z>, C<a-z>, C<0-9>, and C<_>) be used,
 otherwise it may harder or impossible to use the layout with some
 advanced features.  If you want to give the layout a nice name use the
-[Name](#layoutname) property explained below.
+C<Name> property explained below.
 
 Long lines can be be split into multiple lines by ending them with a
 backslash (the backslash is optional as long as the next line doesn't
-begin with something like `word=`).
+begin with something like C<word=>).
 Keys define either containers or properties, they only use simple
-alphanumeric characters: `A-Z a-z _ 0-9` .
+alphanumeric characters: C<A-Z a-z _ 0-9>.
 Keys are unique for a layout, duplicate key definitions replace the
 previous one.
 
@@ -118,8 +116,7 @@ browser window) and the current song title:
     HBox = Pref Play OpenBrowser _Title
 
 Type=G (G for generic) is used to make it appear in the player layouts
-list in the settings dialog.  The `_` before Title is used to make the
-Title use all the available space in the horizontal box (HBox) it is
+list in the settings dialog.  The C<_> before C<Title> is used to make C<Title> use all the available space in the horizontal box (HBox) it is
 packed in.  The 4 widgets are put into a HB (= horizontal box)
 container, so they will be placed in a line.
 
@@ -129,15 +126,15 @@ container, so they will be placed in a line.
     MBmenu = MainMenuItem
     HBbuttons= Prev Play Next
 
-This layout has 3 containers, `VBMain` being the parent widget for
-`MBmenu` and `HBbuttons`.  The `Title` widget displays the current
-song's title and `Text` has an option that defines what it should
+This layout has 3 containers, C<VBMain> being the parent widget for
+C<MBmenu> and C<HBbuttons>.  The C<Title> widget displays the current
+song's title and C<Text> has an option that defines what it should
 display, complete with
 L<pango markup|http://developer.gnome.org/pango/stable/PangoMarkupFormat.html>
-and [$-words](#songvar).  This layout will show, vertically: a menu,
+and L</Song variables>.  This layout will show, vertically: a menu,
 buttons, title, and the text widget showing artist and album.
 
-Look in the layouts files (installed in `/usr/share/jukebox/layouts/`)
+Look in the layouts files (installed in F</usr/share/jukebox/layouts/>)
 for more examples.
 
 =head2 Normal containers
@@ -148,7 +145,7 @@ widgets list.  For example:
 
     HBname = (option1=value1,option2=value2) widget1 widget2
 
-All containers accept the option `border` to specify the amount of
+All containers accept the option C<border> to specify the amount of
 padding around the container.
 
 =over
@@ -184,7 +181,7 @@ fill (rarely needed)
 
 Example:
 
-  `HBname = 2_-widget1(opt1=val,opt2=val) -widget2 2container3`
+  HBname = 2_-widget1(opt1=val,opt2=val) -widget2 2container3
 
 Cover and ArtistPic widgets are treated specially, they ignore the
 expand mode, and expand until they reach a square size.  For instance,
@@ -202,11 +199,11 @@ L<GtkPaned|http://developer.gnome.org/doc/API/2.0/gtk/GtkPaned.html>
 
 Same as HB/VB but they contain only 2 widgets.
 
-They only have one packing option, the underscore `_`.  It sets the
-expand propriety that tells the container that this widget should give
+They only have one packing option, the underscore C<_>.  It sets the
+expand property that tells the container that this widget should give
 or receive space when the container is resized.  
 
-If both children have the expand propriety, they will both give or
+If both children have the expand property, they will both give or
 receive space when the container is resized.
 
 =item B<TB> (I<deprecated>)
@@ -265,8 +262,8 @@ expander.
 
 Examples:
 
-    EBname = (label="optional label") widget1`  
-    EBsimple = widget2`
+    EBname = (label="optional label") widget1
+    EBsimple = widget2
 
 =item B<FB>
 
@@ -304,7 +301,7 @@ options.
 Submenu.
 
 They can only contain MenuItem widgets or SM containers, no packing
-options, label is set with the `label` container option.
+options, label is set with the C<label> container option.
 
 =item B<BM>
 
@@ -420,7 +417,7 @@ For example for having a window pop-up when the mouse is above a HB
 container, using the C<hover_layout> option on the HB won't work, but
 putting the HB inside a WB and using the C<hover_layout> option on the
 WB will work.  It's also a way to paint the background of a HB using a
-custom gtk theme.
+custom GTK theme.
 
 =back
 
@@ -470,24 +467,17 @@ Example:
 
 Set a title for the window.  If not set, the window title defaults to
 C<Song Title by Artist> (B<%S> by B<%a>)
-(see L<"%-letters and $-words"|#songvar>).
+(see L</Song variables>).
 
     Title = jukebox playing %S by %a from %l
 
 =item B<Type>
 
-A String of letters (most of the time only one letter) defining the
-type(s) of a layout, possible types:
-
-  - G Generic or player window
-  - B Browser window
-  - T Tray window
-  - F Fullscreen
-  - S Search
-  - P Page for use in TabbedLists/NB/Context
-  - O titlebar Overlay used by the titlebar plugin
-  - D Desktop widget used by the "Desktop widgets" plugin
-  - K for Karaoke plugin _(there is not yet an option to change the layout in the plugin)_
+A string of letters, usually one letter, defining the type or types of
+a layout.  Recognized values include C<G> (generic/player), C<B>
+(browser), C<T> (tray), C<F> (fullscreen), C<S> (search), C<P> (page
+for C<TabbedLists>, C<NB>, or C<Context>), C<O> (titlebar overlay),
+C<D> (desktop widget), and C<K> (karaoke).
 
 
 Layouts of type G may optionally be followed a plus sign C<+> that will
@@ -496,11 +486,11 @@ be used by layouts that include a LayoutItem.  The idea is that users
 must be able to switch between the different '+' layouts easily.
 
 Layouts work perfectly fine without a type, layouts without a type
-just won't be listed anywhere in the GUI.  But they can for be opened
+are simply not listed in the GUI.  They can still be opened
 with the C<OpenCustom> command or with the C<-layout> command-line
 option.
 
-=item B<< <a id=layoutname> Name </a> >>
+=item B<Name>
 
 Set the name of the layout displayed in the settings dialog.  The
 default Name is the layout id.
@@ -558,9 +548,8 @@ C<-listcmd>.
 
 Set which widget gets the initial focus in the window.
 
-It might not work with some complex widgets though it is easy to fix,
-just ask me if you'd like to enable it for a widget that currently
-doesn't support it.
+Some complex widgets do not accept initial focus; in that case the
+property has no effect for that widget.
 
 Example:
 
@@ -574,9 +563,9 @@ color option.
 
 =item B<SkinPath> and B<SkinFile>
 
-Used to set a picture file to be used as a skin, that can be used to
-set a window background, see the
-L<skin documentation|http://wiki.gmusicbrowser.org/customization/skins>.
+Used to select an image file for layout skinning and window
+backgrounds.  Bundled layouts provide examples of the supported
+syntax.
 
 =item B<Window>
 
@@ -680,6 +669,8 @@ close the existing window and open a new window
 
 =back
 
+=back
+
 =head2 Derived Layouts
 
 A layout can be derived from a previously defined layout by adding
@@ -719,7 +710,7 @@ value set in the layout definition.
 
 Most of these user-set options are not documented here.  To discover
 them you just need to use the widget in a layout and then look at the
-file containing the saved options (F<~/.config/jukebox/jukeboxrc>) for
+file containing the saved options (F<$XDG_CONFIG_HOME/jukebox/jukeboxrc>) for
 the line containing the layout id, then for the line containing the
 widget name, the following lines contain the saved widget options.
 Some of these options may contain sub-options (for example a
@@ -775,7 +766,7 @@ keyboard.
 
 A lot of widgets, in particular labels, indicators and buttons can use
 the option B<tip> to define a tool-tip for the widget.  The tip may
-contain L<[%-letters and $-words](#songvar)> to display informations
+contain L</Song variables> to display information
 on the current song.  Example:
 
   Title(tip="last played : $lastplay")
@@ -787,7 +778,7 @@ hovers over the widget.  Example:
 
   Play(cursor=hand2)
 
-See L<[this page](http://gtk2-perl.sourceforge.net/doc/pod/Gtk2/Gdk/Cursor.html#enum_Gtk2_Gdk_Cursor>
+See L<Gtk2::Gdk::Cursor|https://metacpan.org/pod/Gtk2::Gdk::Cursor>
 for a list of cursor names.
 
 =item B<hover_layout option>
@@ -801,10 +792,10 @@ mouse exit the window.
 
 Only the widget or container that have their own gdkwindow can use
 this option.  For the other widgets/containers, they can be placed
-inside a B<WB> and use the B<hover_layout> option on this B<EW>.
+inside a B<WB> and use the B<hover_layout> option on this B<WB>.
 
 The B<hover_layout_pos> option can used to control the position of the
-popped window, see L<[this commit](http://git.gmusicbrowser.org/commit/41b0c69b45)>.
+popped window relative to the triggering widget.
 
 Simple example of the B<hover_layout> option to popup a big cover when
 the mouse hover on a Cover widget, by defining the Cover widget with
@@ -894,7 +885,7 @@ Pos, and Text
 =item - font
 
 Change the default font, the value use the
-L<[pango font syntax](http://developer.gnome.org/pango/stable/pango-Fonts.html#pango-font-description-from-string)>,
+L<Pango font description syntax|https://docs.gtk.org/Pango/type_func.FontDescription.from_string.html>,
 for example: C<12>, C<Sans Italic 12>, C<Monospace>.
 
 (Note that the font for a part of the string can be set in pango markup)
@@ -919,9 +910,9 @@ it is only a number.
 =item - markup
 
 Can be used to re-define the text displayed, you can use
-L<[%-letters and $-words](#songvar)> (like B<%t>, B<%a>, ...) for
+L</Song variables> (like B<%t>, B<%a>, ...) for
 current-song dependent text, and
-L<[pango markup](http://library.gnome.org/devel/pango/stable/PangoMarkupFormat.html)>
+L<Pango markup|https://docs.gtk.org/Pango/pango_markup.html>
 (like B<< <b>...</b> >>) for formatting.
 
 =item - markup_empty
@@ -1002,8 +993,8 @@ Label text.
 =item - markup
 
 Text than can include
-L<[%-letters and $-words](#songvar)> and
-L<[pango markup](http://library.gnome.org/devel/pango/stable/PangoMarkupFormat.html)>.
+L</Song variables> and
+L<Pango markup|https://docs.gtk.org/Pango/pango_markup.html>.
 
 =item - ellipsize
 
@@ -1099,7 +1090,7 @@ Text in the button.
 
 Icon name, see F</usr/share/jukebox/pix/> or
 L<Gtk2 Stock-Items|http://developer.gnome.org/doc/API/2.0/gtk/gtk-Stock-Items.html>
-or F<~/.config/jukebox/icons/> (without filename extension).
+or F<$XDG_CONFIG_HOME/jukebox/icons/> (without filename extension).
 
 =back
 
@@ -1195,8 +1186,9 @@ C<size=menu>, else to C<%s>.
 
 =item - C<stock>
 
-Option to change the default icons, see
-L<this commit|http://git.gmusicbrowser.org/commit/9287bb273a>.
+Change the default icon by name.  Bundled icons are available under
+F</usr/share/jukebox/pix/> and user icons may be placed under
+F<$XDG_CONFIG_HOME/jukebox/icons/>.
 
 =back
 
@@ -1246,7 +1238,7 @@ Playing position progress bar.
 =item - text
 
 Specify a text to display inside the bar, it can contain
-L<%-letters and $-words|...>, in addition these variables are
+L</Song variables>, in addition these variables are
 available: C<$percent>, C<$current>, C<$left>, C<$total>.
 
 =item - text_empty
@@ -1266,244 +1258,521 @@ Set the font.
 
 =back
 
-### Volume widgets
- - VolumeIcon : Volume indicator
- - VolumeSlider : Volume slider
-     - hide : hide the value if true (=1)
-     - horizontal : vertical slider if true (=1)
-     - step_mode : if 1, clicking on the slider increase or decrease the volume by one step, rather than setting it to the corresponding value
- - VolumeBar : Volume bar
- - Volume : current volume as text
+=head3 Volume widgets
 
-### Other widgets related to the playing song
-  By default, all these widgets show information on the currently playing song, some allow the edition of a property of the current song. By using the `group` option (see above), these widgets should be able to follow for example the selected song in a songlist rather than the current song. Example : `VBexample= _SongList(group=example) Cover(group=example)`
+=over
 
- - Cover : Album cover of currently playing song
-    - forceratio : 1 or 0, if 1 always request a square size, useful for tray tip windows as they can't be resized
-    - minsize : minimum size
-    - maxsize : maximum size (default is 500)
-    - default : set a default file to use if there is no cover/artist picture
-    - overlay : set an overlay which is drawn on top of the picture, format is `XxY:WIDTHxHEIGHT:FILE`, where X, Y, WIDTH and HEIGHT define a rectangle in the overlay file where the album/artist picture will be drawn
-    - reflection : enable a reflection effect below the picture, (requires Cairo perl module) The value can be 0-100, used to define the height of the reflection in percentage of the picture (the value 1 set it to the default value of 25)
-    - r_alpha1 and r_alpha2 : can be used to set the starting (default=80) and ending (default=0) transparency percentage (0-100) of the reflection
-    - r_scale : (0-100, default=90) to configure the vertical scaling of the reflection
-    - (the filename in the `default` and `overlay` option can be absolute or relative to the layout folder)
- - ArtistPic : Artist picture of currently playing song. Same options as Cover. With multiple artists, displays only one picture unless the option `multiple` was given, which can be set to `v` (vertical) or `h` (horizontal)
- - Stars : Display currently playing rating as a picture (default to stars), clicking on the stars change the rating
-    - xalign and yalign : value between 0 and 1. Used to align the stars in the widget if the widget has more space than needed. Default to .5
- - LabelsIcons : Icons for currently playing labels for which an icon is defined in `~/.config/gmusicbrowser/icons/` (by a .png or .svg named `label-` followed by the label name.)
- - SongInfo : display the song properties (like the info tab of the song properties window)
-     - expander: 1 or 0, defaults to 1, show expanders for each field category if 1
-     - hide_empty: 1 or 0, default to 1, hide empty fields if 1
-     - font : default font
-     - group : group that determine current song, defaults to Play
-     - markup_cat : markup for categories name, defaults to `<u>%s</u>`
-     - markup_field : markup for fields name, defaults to `<small>%s :</small>`
-     - markup_value : markup for values, defaults to `<small><b>%s</b></small>`
- - PictureBrowser : display pictures in folder of the current album, click to change picture, many options are planned
- - AddLabelEntry : Entry to add labels to the current song
- - LabelToggleButtons : displays list of labels with toggle buttons to edit current song's labels
-    - hide_unset: if true(=1), hide labels that not set for the song
- - Context : Context view, in fact this widget is a TabbedLists with a few different default options, in particular `match=context page` that automatically add context pages provided by plugins, and `typesubmenu=C` that  limit the context menu to context_pages-related entries
+=item C<VolumeIcon>
 
+Volume indicator.
 
-#### Miscellaneous widgets
+=item C<VolumeSlider>
 
- - AASearch
-    - aa : artist or album
-    - activate : addplay or other action, see activate option of SongList
- - ArtistSearch : same as AASearch(aa=artists)
- - AlbumSearch : same as AASearch(aa=album)
- - SongSearch
- - ConnectionsList : the active connections when in gstreamer-server mode (very rough for now, mostly for testing)
- - Visuals : Display a sound visualisation, only with gstreamer
- - QueueActions : combobox to change the queued action
- - ToggleButton : Show/Hide other widget(s)
-    - icon : icon name, see `/usr/share/gmusicbrowser/pix/` or [Gtk2 Stock-Items](http://developer.gnome.org/doc/API/2.0/gtk/gtk-Stock-Items.html) or `~/.config/gmusicbrowser/icons/` (without filename extension)
-    - text : button text
-    - widget : list of widgets/containers separated by `|`
-    - resize : String of `h`,`v` or `_`, one by hidden widget : shrink the window vertically (v) or horizontally (h) when each widget is hidden
-    - togglegroup : activating a ToggleButton or MenuItem with a togglegroup will deactivate all the TogButton or MenuItem of the same togglegroup
-    - size : can be `menu`, `small-toolbar`, `large-toolbar`, `button`, `dialog`, `dnd`. (the actual size depends on gtk settings)
-    - relief
- - Filler : empty widget to add space, for use with H/VSize
- - HSeparator : Horizontal separator
- - VSeparator : Vertical separator
- - PlayOrderCombo : Combo box to change play order, the option minwidth set the requested width, it defaults to 100, -1 to let it grow, but it can grow much to wide, so it's best to set a minimum width and pack it with the expand option
- - Equalizer : Equalizer, only active with gstreamer currently
-    - preamp : whether to show the preamp, default to 1
-    - labels : pango attribute used to display labels, default to `x-small`
- - EqualizerPresets : allows selecting and editing equalizer presets
-    - editmode : set default mode, edit (1) or normal (0) (the default)
-    - notoggle : default to 0, if 1 do not display the button that toggles edit mode
-    - open  : default to 0, if 1 add an "Open equalizer" entry to the combobox
-    - onoff : default to 1, if >1 add a "Turn off equalizer" entry to the combobox, if >0 show a "Turn on equalizer" button if it is off
- - EqualizerPresetsSimple : same as EqualizerPresets with open=1 and notoggle=1
- - Progress : widget to display progress of current operations, hidden if no operations in progress
-    - compact: make it more compact, less verbose, default to 1
- - VProgress : same as Progress, but the widget use more vertical space and less horizontal space, and the compact option is 0 (false) by default
+Volume slider.  Useful options include:
 
+=over
 
-#### Songlist widgets
-When there is more than one SongList/TabbedLists/... in a layout, they must each but one be assigned a group number though the group option. The one without a group number will be the default with which other widgets interact with.  
-All the other widgets which interact with a SongList/TabbedLists/... accept the option 'group' to specify which one they interact with, it is only needed when the layout contain more than one SongList/TabbedLists/...
+=item C<hide>
 
- - QueueList : Display queue (and edit it), accept the same options as SongList
- - PlayList : SongList in playlist mode
- - SongList :
-    - hideif : can be `nofilter` or `empty`. Other values disable this. Conditions that will make the songlist hide itself or the widgets specified by hidewidget
-    - hidewidget : List of widgets separated with `|`. When the hide conditions are met, these widgets will be hidden, by default the songlist is hidden
-    - shrinkonhide : String of `h`,`v` or `_`, one by hidden widget : shrink vertically (`v`) or horizontally (`h`) the window when hidden. When multiple widgets are hidden, a direction or no direction (`_`) can be specified for each widget by using a string of `h/v/_`
-    - mode : if set to `playlist`, the songlist and the playlist are synchronized
-    - activate : Action when double-clicking on a song : `play`(play now), `queue`(enqueue), `queueinsert`(insert at the top of the queue), `replacequeue`, `playlist`(set this list as the playlist and play this song), `addplay`(add to playlist), `insertplay`(insert in playlist after current position), `filter_and_play`, `filter_sort_and_play`, or `properties`(open song property window). The action can  be followed by a command like this : `activate=play&CloseWindow`
-    - activateX : where X is a mouse button number, defines the action used when the button X is double-clicked
-    - headers : hide the headers if set to `off`
-    - songypad : change the default number of pixels between rows
-    - no_typeahead : if 1, disable automatic searching when a letter/digit is pressed and the SongList has focus
-    - rowtip : default tip to show when the mouse is above a row, can use %-letters and $-words
-    - autoupdate ; if 1 (default) keep list sorted and filtered (ignored in playlist, queue, or static list mode). User can toggle this option, so only affect newly created songlists
- - TabbedLists : Songlists in tabs, can contain playlist, static lists and the queue. layouts of type 'P' can be opened in TabbedLists (use the layout property key `stockicon` to set the tab icon), context pages can also be opened (the Context widget is a TabbedLists with a different set of options)
-    - tablist : if 1, show the list of tabs in the tab context-menu
-    - closebuttons : if 1, display close buttons in the tab of tabs that can be closed
-    - newbutton : if 1 (default) show a "new page" button next to the tabs
-    - tabpos : select tab position (left, right, top, bottom), optionally followed by the rotation angle : 0, 90, 180 or 270, example : `tabpos=left90`
-    - default_child : widget type that will be opened by default when closing the last page. default to `PlayList`
-    - match : set of keywords that define which dynamic widget should be added automatically? Default to empty, which means nothing will be added automatically. The Context widget has the is option set to `context page`
- - SongTree : Very customizable Songlist replacement. (drag and dropping columns is not yet implemented). See this [wiki page](http://wiki.gmusicbrowser.org/customization/songtree) for some documentation. Many SongList options work, including these : activate activateX headers songxpad songypad rowtip autoupdate
+Hide the numeric value when true.
 
-#### Widgets related to songlists
-(filter# is a number between 0-9, 0 is meant for FilterLock, when a filter is set all filters with a higher number are reset)  
-All these widgets accept the option `group` to specify which SongList/TabbedLists/... they interact with, it is only needed when the layout contain more than one SongList/TabbedLists/...  
+=item C<horizontal>
 
- - AABox : Artist or Album box (name, picture and stats of selected album/artist)
-    - aa : artist or album
- - ArtistBox : same as AABox(aa=artists)
- - AlbumBox : same as AABox(aa=album)
- - EditListButtons : buttons to remove/move the selected song(s) in the songlist and clear the list
-    - small : if true(=1) hide the label of the remove and clear buttons
-    - orientation : vertical buttons if set to `vertical`
+Use horizontal orientation when true.
 
- - EmptyList : empty the list
- - FilterBox : advanced search box (set filter#1)
- - FilterLock : Lock/unlock : current songlist filter is put in filter#0
-    - relief
- - FilterPane : Filter pane
-    - nb : filter#, filter number to set, the artist/album/genre/date/label/folder/... pages only show the artist/... for songs matching all filters with a lower number 
-    - hidebb : hide bottom buttons if true(=1)
-    - pages : set the default list of pages, value is names of pages separated by `|`, among savedtree,artist,album,genre,date,label,folder,filesys,lastplay,added,modif,rating...
-    - activate : play, queue, queueinsert, replacequeue, insertplay, playlist, addplay or properties (see `activate` option of SongList)
-    - activateX : where X is a mouse button number, defines the action used when the button X is double-clicked
-    - searchbox : if true(=1) add a search box to artist/album,genre,label pages
-    - no_typeahead : if true(=1) disable automatic searching when a letter/digit is pressed and the FilterPane has focus
-    - hidetabs : if true(=1) tabs are hidden
-    - tabmode : value can be `text` (default), `icon` or `both`. When `icon` or `both`, it will try to use icons named `gmb-tab-` followed by the internal page name
-    - hscrollbar : show horizontal scrollbar if 1, hide it if 0
- - PlayFilter : Button to Play current songlist filter
- - QueueFilter : Button to Enqueue current songlist filter
- - Refresh : Button to re-filter songlist
- - ResetFilter : Button to reset songlist filter
- - ShuffleList : shuffle the list
- - SimpleSearch : search entry, search title/album/artist (set filter#1), support powerful syntax (example title:sometitle and lots more, the documentation has not be written yet, see git logs for examples)
-    - noselector : if set to 1 hide the selector icon, not recommended as it makes the widget much less powerful
-    - activate : can be used to set a command to run after enter is pressed
- - Total : Total number/length/size of selected/filter/library
-    - size : change text size, value can be xx-small, x-small, small, medium, large, x-large, xx-large, or see [pango markup](http://library.gnome.org/devel/pango/stable/PangoMarkupFormat.html)
-    - format : short or long (default)
-    - button : default to 1, if 0 a click-able label is used instead of a button
-    - relief : relief of the button, default to `none`
-    - noheader : if true, remove the "Library:" part of the text
+=item C<step_mode>
 
+When true, clicking the slider changes the volume by one step instead
+of setting it directly from the clicked position.
 
-#### MenuItem widgets (can only be put in a MB/SM)
- - HistItem : Filter history (set filter#1)
- - LSortItem : Sort order for songlist
- - MainMenuItem : main menu
- - LayoutItem : layout menu (allows the user to switch to an other layout of type G+)
- - MenuItem : Custom menu item
-    - text : text of the menu item
-    - icon : name of the icon
-    - command : gmusicbrowser command to execute
-    - togglewidget : list of widgets/containers separated by `|`
-    - resizeonly : with the togglewidget option, see the resize option of the ToggleButton
-    - togglegroup : activating a ToggleButton or MenuItem with a togglegroup will deactivate all the TogButton or MenuItem of the same togglegroup
-    - button : if set to 1 and has a submenu, the menuitem is turned into a button (same as BM)
- - PFilterItem : playing filter menu
- - PSortItem : playing sort order
- - PlayItem : choose a Filter based on playing title/artist/album/filter (set filter#1) and follow playing songlist option
- - QueueItem : queue menu
- - SeparatorMenuItem : separator
+=back
 
+=item C<VolumeBar>
 
+Volume progress bar.
 
-### Widget aliases
-Some widgets have been renamed, the old names are deprecated but can be found in old layouts.  
-old name => new name :
+=item C<Volume>
 
-	Playlist	=> OpenBrowser
-	BContext	=> OpenContext
-	Date		=> Year
-	Label		=> Text
-	Vol			=> VolumeIcon
-	LabelVol	=> Volume
-	FLock		=> FilterLock
-	TogButton	=> ToggleButton
-	ProgressV	=> VProgress
-	FBox		=> FilterBox
-	Scale		=> TimeSlider
-	VolSlider	=> VolumeSlider
-	VolBar		=> VolumeBar
-	FPane		=> FilterPane
-	LabelTime	=> PlayingTime
+Current volume displayed as text.
 
+=back
 
-## Embedded layouts (experimental)
+=head3 Widgets related to the current song
 
-Layouts can be embedded inside an other layout by simply adding `\@id_of_embedded_layout` to a container (not all characters are
-supported in embedded layouts identifier)  
-example :
+By default these widgets follow the currently playing song.  The
+C<group> option can bind supported widgets to another song context, for
+example a selected row in a song list:
 
-    [example_layout]
-    HBmain = Play Stop Pref
-    VBmain = HBmain Title _@embedded_example
-    
-    [embedded_example]
-    VBmain = Title _SongTree
+  VBexample = _SongList(group=example) Cover(group=example)
 
+=over
 
+=item C<Cover>
 
+Display the album cover.  Options include:
 
-## <a id="songvar"> %-letters and $-words</a>
-Some options accept %-letters and $-words variables that are replaced by a field/property of the currently playing song.
-For example in `%t by %a`, %t is replaced by the song title and %a by the artist name. It is equivalent to `$title by $artist`  
-Note that %c and %f are not meant to be used for displaying.
+=over
 
-$-words : the word can be any of the activated field name, see the fields tab of the settings dialog.
+=item C<forceratio>
 
-%-letters:
+Request a square size when true.  This is useful in pop-up layouts that
+cannot resize themselves.
 
-	t	title
-	a	artist
-	l	album
-	d	disc
-	n	track
-	y	year
-	C	comment
-	p	play count
-	P	last play
-	k	skip count
-	K	last skip
-	g	genres
-	L	labels
-	m	length
-	V	version or nothing if song doesn't have a version/subtitle tag
-	S	title or filename if no title
-	f	filename (with path) (raw filename, may not display correctly)
-	u	filename (with path) (in utf8, used for display, might not be convertible back to the real filename)
-	c	cover file
-	Y	album year(s)
-	A	album artist or artist
+=item C<minsize>, C<maxsize>
+
+Minimum and maximum picture size.  The default maximum is 500.
+
+=item C<default>
+
+Fallback image when no album cover is available.
+
+=item C<overlay>
+
+Draw an overlay on top of the picture.  The format is
+C<XxY:WIDTHxHEIGHT:FILE>; the coordinates define the rectangle in the
+overlay into which the cover is drawn.
+
+=item C<reflection>
+
+Enable a reflected image below the cover.  This requires the Cairo Perl
+bindings.  Values from 0 through 100 control the reflection height as a
+percentage; C<1> selects the historical default of 25 percent.
+
+=item C<r_alpha1>, C<r_alpha2>, C<r_scale>
+
+Control reflection opacity and vertical scale.
+
+=back
+
+Files named by C<default> and C<overlay> may be absolute or relative to
+the layout search path.
+
+=item C<ArtistPic>
+
+Display an artist picture.  It accepts the same picture options as
+C<Cover>.  With multiple artists, C<multiple=v> or C<multiple=h> can be
+used to display more than one picture vertically or horizontally.
+
+=item C<Stars>
+
+Display and edit the current rating using star images.  C<xalign> and
+C<yalign> position the stars when the widget receives more space than it
+needs.
+
+=item C<LabelsIcons>
+
+Display icons for labels assigned to the current song.  User icons are
+looked up under F<$XDG_CONFIG_HOME/jukebox/icons/> by names beginning
+with C<label->.
+
+=item C<SongInfo>
+
+Display song properties.  Important options include C<expander>,
+C<hide_empty>, C<font>, C<group>, C<markup_cat>, C<markup_field>, and
+C<markup_value>.
+
+=item C<PictureBrowser>
+
+Display pictures from the current album directory and allow the active
+picture to be changed.
+
+=item C<AddLabelEntry>
+
+Entry used to add labels to the current song.
+
+=item C<LabelToggleButtons>
+
+Toggle buttons for editing labels.  C<hide_unset=1> hides labels not
+currently set on the song.
+
+=item C<Context>
+
+Context view implemented as a C<TabbedLists> widget with defaults suited
+to context pages supplied by plugins.
+
+=back
+
+=head3 Miscellaneous widgets
+
+=over
+
+=item C<AASearch>
+
+Artist/album search.  C<aa> selects the grouped field and C<activate>
+selects the activation action.
+
+=item C<ArtistSearch>
+
+Equivalent to C<AASearch(aa=artists)>.
+
+=item C<AlbumSearch>
+
+Equivalent to C<AASearch(aa=album)>.
+
+=item C<SongSearch>
+
+Song search entry.
+
+=item C<ConnectionsList>
+
+Display active connections in GStreamer server mode.
+
+=item C<Visuals>
+
+Display audio visualization when supported by the GStreamer backend.
+
+=item C<QueueActions>
+
+Combo box used to change the action associated with queued songs.
+
+=item C<ToggleButton>
+
+Show or hide one or more widgets.  Common options are C<icon>, C<text>,
+C<widget>, C<resize>, C<togglegroup>, C<size>, and C<relief>.  Icon names
+may refer to bundled files under F</usr/share/jukebox/pix/>, Gtk2 stock
+items, or user icons under F<$XDG_CONFIG_HOME/jukebox/icons/>.
+
+=item C<Filler>
+
+Empty widget useful with size groups.
+
+=item C<HSeparator>, C<VSeparator>
+
+Horizontal and vertical separators.
+
+=item C<PlayOrderCombo>
+
+Combo box for selecting play order.  C<minwidth> defaults to 100; C<-1>
+allows unrestricted growth.
+
+=item C<Equalizer>
+
+Equalizer widget for backends that provide equalizer support.  Options
+include C<preamp> and C<labels>.
+
+=item C<EqualizerPresets>
+
+Preset selector/editor.  Options include C<editmode>, C<notoggle>,
+C<open>, and C<onoff>.
+
+=item C<EqualizerPresetsSimple>
+
+Equivalent to C<EqualizerPresets> with C<open=1> and C<notoggle=1>.
+
+=item C<Progress>
+
+Display active jukebox operations and hide itself when there are none.
+C<compact> defaults to true.
+
+=item C<VProgress>
+
+Vertical variant of C<Progress>; its C<compact> option defaults to false.
+
+=back
+
+=head3 Song-list widgets
+
+When a layout contains more than one song-list-like widget, all but one
+should be assigned an explicit C<group>.  Widgets that interact with a
+song list accept the same C<group> option so they can target the intended
+list.
+
+=over
+
+=item C<QueueList>
+
+Editable queue.  It accepts the same general options as C<SongList>.
+
+=item C<PlayList>
+
+C<SongList> in playlist mode.
+
+=item C<SongList>
+
+General song-list widget.  Common options include:
+
+=over
+
+=item C<hideif>
+
+C<nofilter> or C<empty> can hide the list, or the widgets named by
+C<hidewidget>, when the condition is true.
+
+=item C<hidewidget>
+
+C<|>-separated widgets to hide instead of the song list itself.
+
+=item C<shrinkonhide>
+
+A string of C<h>, C<v>, or C<_> entries controlling whether the window
+shrinks horizontally or vertically as widgets are hidden.
+
+=item C<mode>
+
+C<playlist> synchronizes the widget with the playlist.
+
+=item C<activate>
+
+Action performed when a song is double-clicked.  Supported actions
+include C<play>, C<queue>, C<queueinsert>, C<replacequeue>, C<playlist>,
+C<addplay>, C<insertplay>, C<filter_and_play>, C<filter_sort_and_play>,
+and C<properties>.  An action can be followed by a command, for example
+C<activate=play&CloseWindow>.
+
+=item C<activateN>
+
+Define the double-click action for mouse button N.
+
+=item C<headers>
+
+C<off> hides column headers.
+
+=item C<songypad>
+
+Change vertical padding between rows.
+
+=item C<no_typeahead>
+
+Disable automatic type-ahead search when true.
+
+=item C<rowtip>
+
+Tooltip markup for a row.  Song variables from L</Song variables> may be
+used.
+
+=item C<autoupdate>
+
+Keep the list sorted and filtered automatically.  It defaults to true
+and is ignored for playlist, queue, and static-list modes.
+
+=back
+
+=item C<TabbedLists>
+
+Song lists arranged in tabs.  Tabs may contain playlists, static lists,
+the queue, layouts of type C<P>, and context pages.  Options include
+C<tablist>, C<closebuttons>, C<newbutton>, C<tabpos>, C<default_child>,
+and C<match>.
+
+=item C<SongTree>
+
+Highly customizable replacement for C<SongList>.  Many C<SongList>
+options also apply, including C<activate>, C<activateN>, C<headers>, row
+padding, C<rowtip>, and C<autoupdate>.  The bundled layout files contain
+working group and column definitions.
+
+=back
+
+=head3 Widgets related to song lists
+
+Filter numbers range from 0 through 9.  Filter 0 is conventionally used
+by C<FilterLock>; setting a filter resets higher-numbered filters.  These
+widgets accept C<group> when more than one song list is present.
+
+=over
+
+=item C<AABox>
+
+Artist or album box containing the selected entity's name, picture, and
+statistics.  C<aa> selects the grouped field.
+
+=item C<ArtistBox>
+
+Equivalent to C<AABox(aa=artists)>.
+
+=item C<AlbumBox>
+
+Equivalent to C<AABox(aa=album)>.
+
+=item C<EditListButtons>
+
+Buttons for removing, moving, and clearing selected songs.  C<small>
+hides some labels and C<orientation=vertical> uses vertical buttons.
+
+=item C<EmptyList>
+
+Empty the associated list.
+
+=item C<FilterBox>
+
+Advanced search widget that sets a filter.
+
+=item C<FilterLock>
+
+Lock or unlock the current song-list filter.
+
+=item C<FilterPane>
+
+Multi-page filter browser.  Important options include C<nb>, C<hidebb>,
+C<pages>, C<activate>, C<activateN>, C<searchbox>, C<no_typeahead>,
+C<hidetabs>, C<tabmode>, and C<hscrollbar>.
+
+=item C<PlayFilter>
+
+Play the current song-list filter.
+
+=item C<QueueFilter>
+
+Enqueue the current song-list filter.
+
+=item C<Refresh>
+
+Reapply the current song-list filter.
+
+=item C<ResetFilter>
+
+Reset the current song-list filter.
+
+=item C<ShuffleList>
+
+Shuffle the associated list.
+
+=item C<SimpleSearch>
+
+Search entry for song metadata.  C<noselector=1> hides the selector and
+C<activate> can name a command to run when Enter is pressed.
+
+=item C<Total>
+
+Display the number, duration, and size of selected, filtered, or library
+songs.  Options include C<size>, C<format>, C<button>, C<relief>, and
+C<noheader>.
+
+=back
+
+=head3 Menu-item widgets
+
+These widgets are intended for C<MB> and C<SM> containers.
+
+=over
+
+=item C<HistItem>
+
+Filter-history menu.
+
+=item C<LSortItem>
+
+Sort-order menu for the song list.
+
+=item C<MainMenuItem>
+
+Main jukebox menu.
+
+=item C<LayoutItem>
+
+Layout selector for layouts of type C<G+>.
+
+=item C<MenuItem>
+
+Custom menu item.  Options include C<text>, C<icon>, C<command>,
+C<togglewidget>, C<resizeonly>, C<togglegroup>, and C<button>.
+
+=item C<PFilterItem>
+
+Playing-filter menu.
+
+=item C<PSortItem>
+
+Playing-sort-order menu.
+
+=item C<PlayItem>
+
+Choose a filter based on the playing title, artist, album, or filter and
+follow the playing song-list option.
+
+=item C<QueueItem>
+
+Queue menu.
+
+=item C<SeparatorMenuItem>
+
+Menu separator.
+
+=back
+
+=head3 Widget aliases
+
+Some widgets have been renamed.  The old names remain useful when
+reading legacy layouts but new layouts should use the current names:
+
+  Playlist   => OpenBrowser
+  BContext   => OpenContext
+  Date       => Year
+  Label      => Text
+  Vol        => VolumeIcon
+  LabelVol   => Volume
+  FLock      => FilterLock
+  TogButton  => ToggleButton
+  ProgressV  => VProgress
+  FBox       => FilterBox
+  Scale      => TimeSlider
+  VolSlider  => VolumeSlider
+  VolBar     => VolumeBar
+  FPane      => FilterPane
+  LabelTime  => PlayingTime
+
+=head2 Embedded layouts
+
+A layout can embed another layout by adding C<@layout_id> as a child of
+a container.  For example:
+
+  [example_layout]
+  HBmain = Play Stop Pref
+  VBmain = HBmain Title _@embedded_example
+
+  [embedded_example]
+  VBmain = Title _SongTree
+
+Embedded layout identifiers support a restricted character set.  Keep
+identifiers simple and alphanumeric when possible.
+
+=head2 Song variables
+
+Some layout options accept C<%>-letter and C<$>-word substitutions for
+fields of the song associated with the widget's group.  For example:
+
+  %t by %a
+
+is equivalent to:
+
+  $title by $artist
+
+A C<$>-word may name any activated song field.  The traditional
+single-letter substitutions are:
+
+  t  title
+  a  artist
+  l  album
+  d  disc
+  n  track
+  y  year
+  C  comment
+  p  play count
+  P  last play
+  k  skip count
+  K  last skip
+  g  genres
+  L  labels
+  m  length
+  V  version, or empty when no version/subtitle is present
+  S  title, or filename when no title is present
+  f  raw filename including path
+  u  UTF-8 display filename including path
+  c  cover file
+  Y  album year or years
+  A  album artist, falling back to artist
+
+C<%c> and C<%f> represent filenames and are generally not appropriate
+for direct display.
+
+=head1 SEE ALSO
+
+L<jukebox(1)>, L<jukeboxrc(5)>, L<jukebox-plugins(7)>
+
+The installed F</usr/share/jukebox/layouts/> files provide concrete
+examples for the widgets and properties described here.
 
 =cut
 
-# vim: sw=2 ts=2 sts=2 et cc=72 tw=70
+# vim: cc=72 tw=70
 # End of file.

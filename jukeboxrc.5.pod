@@ -1,0 +1,115 @@
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+jukeboxrc - jukebox persistent state and configuration file
+
+=head1 DESCRIPTION
+
+C<jukeboxrc> is the primary persistent state file used by L<jukebox(1)>.
+It stores both user options and library state, including song metadata
+maintained by jukebox.  It is therefore not merely a small preferences
+file.
+
+The file is written by jukebox itself.  Normal configuration should be
+performed through the graphical preferences and other jukebox user
+interfaces.  Manual editing is possible, but should only be done while
+jukebox is stopped and with a backup available.
+
+=head1 LOCATION
+
+The default location is:
+
+  $XDG_CONFIG_HOME/jukebox/jukeboxrc
+
+When C<XDG_CONFIG_HOME> is unset, Glib's user configuration directory is
+used, normally F<~/.config>, so the usual path is:
+
+  ~/.config/jukebox/jukeboxrc
+
+If that XDG configuration directory does not yet exist but the legacy
+F<~/.jukebox/> directory does, jukebox uses the legacy directory for
+compatibility.
+
+The B<-C> / B<-cfg> option of L<jukebox(1)> can select another file or
+configuration directory.
+
+=head1 FORMAT
+
+The first line identifies the jukebox save format and version:
+
+  # jukeboxrc version=VERSION time=TIMESTAMP
+
+The remainder is divided into named sections.  Current files contain an
+C<[Options]> section, a C<[Songs]> section, zero or more additional
+metadata sections, and a final C<[EOF]> marker.
+
+The exact serialization of options and song metadata is an internal
+jukebox format.  It is versioned and may change when jukebox needs to
+migrate its persistent state.  External programs should not treat the
+file as a stable interchange format.
+
+=head1 COMPRESSION
+
+jukebox can read and write the state file uncompressed, gzip-compressed,
+or xz-compressed.  A compressed file normally uses C<.gz> or C<.xz>.
+The B<+gzip>, B<-gzip>, and B<+xz> command-line options control the
+format used on the next save.
+
+When opening the default path, jukebox also probes the corresponding
+C<.gz> and C<.xz> names.
+
+=head1 FIRST START DEFAULTS
+
+When no existing state file is available, jukebox initializes its normal
+built-in defaults and then reads any readable C<jukeboxrc.default> files
+from the application data directory and the system configuration
+search path.
+
+A distributor can therefore provide conservative first-start defaults
+without shipping a per-user C<jukeboxrc>.  The source tree contains the
+default file installed with jukebox.
+
+=head1 SAFETY AND BACKUPS
+
+C<jukeboxrc> contains library metadata as well as preferences.  Before
+manual changes, stop jukebox and copy the file, including any C<.gz> or
+C<.xz> suffix actually in use.
+
+jukebox writes saved state through a temporary file before replacing the
+current file and checks for an end marker when loading current-format
+state.  Those checks reduce the chance of accepting an incomplete save,
+but they do not make manual edits safe or transactional.
+
+=head1 RELATED FILES
+
+=over
+
+=item F<$XDG_CONFIG_HOME/jukebox/jukebox.fifo>
+
+Command FIFO for a running jukebox instance.
+
+=item F<$XDG_CONFIG_HOME/jukebox/plugins/>
+
+User plugins.
+
+=item F<$XDG_CONFIG_HOME/jukebox/layouts/>
+
+User layouts.
+
+=item F</usr/share/jukebox/jukeboxrc.default>
+
+First-start defaults in the default system installation prefix.
+
+=back
+
+=head1 SEE ALSO
+
+L<jukebox(1)>, L<jukebox-layouts(7)>, L<jukebox-plugins(7)>
+
+=cut
+
+# vim: cc=72 tw=70
+# End of file.

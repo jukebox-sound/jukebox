@@ -2,7 +2,7 @@
 # Lines starting with a "#" are comments.
 #
 # For more possible values, look at the [Options] section of
-# ~/.jukebox/jukeboxrc.
+# $XDG_CONFIG_HOME/jukebox/jukeboxrc (normally ~/.config/jukebox/jukeboxrc).
 
 # Default audio backend:
 #AudioOut: Play_mplayer

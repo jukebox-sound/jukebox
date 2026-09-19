@@ -4,276 +4,344 @@
 
 =head1 NAME
 
-jukebox - music player for large collections of music files
+jukebox - music player and library browser for large audio collections
 
 =head1 SYNOPSIS
 
-B<jukebox> [B<-nocheck>] [B<-noscan>] [B<-demo>] [B<-ro>] [B<-rotags>]
-[B<-play>] [B<-nodbus>] [B<-gst0> | B<-nogst>] [B<-server>]
-[B<-port> I<N>] [B<-cfg> I<FILE>] [B<-fifo> I<FIFO> | B<-nofifo>]
-[B<-debug>] [B<-verbose>] [B<-layout> I<NAME>] [B<-plugin> I<NAME>]
-[B<-searchpath> I<FOLDER>] [B<-use-gnome-session>]
-[B<-workspace> I<N>] [B<-cmd> I<CMD>] [B<-ifnotrunning> I<MODE>]
-[B<-dbus-id> <KEY>] I<FOLDER> | I<FILE> ...
+B<jukebox> [I<OPTIONS>] [I<FILE> | I<DIRECTORY> ...]
 
-B<jukebox> [B<-listcmd>]
+B<jukebox> B<-cmd> I<COMMAND> [B<-cmd> I<COMMAND> ...]
 
-B<jukebox> B<-tagedit> I<FOLDER> | I<FILE> ...
+B<jukebox> B<-tagedit> I<FILE> | I<DIRECTORY> ...
+
+B<jukebox> B<-listcmd> | B<-listlayout> | B<-listplugin>
 
 =head1 DESCRIPTION
 
-This manual page explains the B<jukebox> program.
+B<jukebox> is a GTK2/Perl music player derived from gmusicbrowser.  It
+is designed around a local music library, configurable layouts,
+filters, queues, playlists, and optional plugins.
 
-B<jukebox> can play and manage your songs, currently supports mp3,
-ogg, flac, mpc file formats.
+Files and directories given on the command line are normally opened as
+the playlist.  The B<-add>, B<-enqueue>, B<-addplaylist>, and
+B<-insertplaylist> options change how those arguments are handled.
+When another jukebox instance is already running, commands and file
+operations are forwarded through DBus or the command FIFO when
+possible.
 
-The options are as follows:
+=head1 OPTIONS
+
+=head2 Startup and library handling
 
 =over
 
 =item B<-c>, B<-nocheck>
 
-Don't check for updated/deleted songs on startup.
+Do not check the library for changed or deleted files at startup.
 
 =item B<-s>, B<-noscan>
 
-Don't scan folders for songs on startup.
+Do not scan configured library folders for new songs at startup.
 
 =item B<-demo>
 
-Don't save settings/tags on exit.
+Do not save settings or tags when the process exits.
 
 =item B<-ro>
 
-Prevent modifying/renaming/deleting song files.
+Prevent modifying, renaming, or deleting song files.  This also enables
+tag read-only mode.
 
 =item B<-rotags>
 
-Prevent modifying tags of music files.
+Prevent modification of tags in audio files.
 
 =item B<-play>
 
-Start playing on startup.
+Start playback after startup.
 
-=item B<-nogst>
+=item B<-hide>
 
-Don't load any gstreamer libraries.
+Start with the main window hidden.
 
-=item B<-gst0>
+=item B<-geometry> I<GEOMETRY>
 
-Prefer gstreamer-0.10 over gstreamer-1.x if both are available.
+Set the initial window geometry.
 
-=item B<-nodbus>
+=back
 
-Don't use DBus.
-
-=item B<-server>
-
-Send playing song to connected icecast client.
-
-=item B<-port> I<N>
-
-Listen for connection on port N in icecast server mode.
-
-=item B<-C> I<FILE>, B<-cfg> I<FILE>
-
-Use I<FILE> as configuration file (instead of F<jukeboxrc> in default
-folder), if I<FILE> is a folder (or ends with C</>), it will be used
-as base folder instead of F<~/.config/jukebox/>.
-
-=item B<-F> I<FIFO>, B<-fifo> I<FIFO>
-
-Use I<FIFO> as named pipe to receive commands (instead of
-F<jukebox.fifo> in default folder).
-
-=item B<-nofifo>
-
-Don't use/create named pipe.
-
-=item B<-dbus-id> I<KEY>
-
-Append .I<KEY> to the DBus service id used by jukebox (org.jukebox).
-
-=item B<-verbose>
-
-Print some info, like the file being played.
-
-=item B<-debug>
-
-Print lots of useless information, implies B<-verbose>.
-
-=item B<-backtrace>
-
-Print a backtrace for every warning.
-
-=item B<-l> I<NAME>, B<-layout> I<NAME>
-
-Use layout I<NAME> for player window.
-
-=item B<-plugin> I<NAME>
-
-Deactivate plugin identified by I<NAME>.
-
-=item B<+plugin> I<NAME>
-
-Activate plugin identified by I<NAME>.
-
-=item B<-noplugins>
-
-Deactivate all plugins.
-
-=item B<-searchpath> I<FOLDER>
-
-Add I<FOLDER> to the list of folders searched for plugins and layouts.
-
-=item B<-use-gnome-session>
-
-Use gnome libraries to save tags/settings on session logout (needs the
-Gnome2 perl module).
-
-=item B<-workspace> I<N>
-
-Move initial window to workspace I<N> (requires B<Gnome2::Wnck> perl
-module).
-
-=item B<-cmd> I<CMD>
-
-Add I<CMD> to the list of commands to execute.
-If a running instance of jukebox is found, these commands will be sent
-via the fifo file or via DBus.
-If there is no running instance of jukebox, the behavior depends on
-option B<-ifnotrunning>
-
-=item B<-ifnotrunning> I<MODE>
-
-Change behavior when no running jukebox instance is found, I<MODE> can
-be one of:
+=head2 Playback and services
 
 =over
 
-=item I<normal> (default)
+=item B<-nogst>
 
-launch a new instance and execute commands
+Do not load a GStreamer backend.
 
-=item I<nocmd>
+=item B<-gst0>
 
-launch a new instance but discard commands
+Prefer the GStreamer 0.10 backend over GStreamer 1.x when both are
+available.
 
-=item I<abort>
+=item B<-server>
 
-do nothing
+Use server playback mode and send the playing stream to connected
+clients.
+
+=item B<-port> I<N>
+
+Listen on port I<N> in server mode.
+
+=item B<-nodbus>
+
+Do not provide jukebox DBus services.
+
+=item B<-dbus-id> I<KEY>
+
+Append C<.KEY> to the default C<org.jukebox> DBus service id.  The key
+may contain letters, numbers, and underscores.
 
 =back
 
-Running instances of jukebox are detected via the fifo or via DBus.
-To run more than one instance, use a unique fifo and a unique DBus-id,
-or deactivate them.
+=head2 Configuration and interface
+
+=over
+
+=item B<-C> I<FILE>, B<-cfg> I<FILE>
+
+Use I<FILE> instead of the default C<jukeboxrc>.  If the argument is an
+existing directory, or ends in C</>, use it as the jukebox configuration
+directory instead.
+
+=item B<-F> I<FIFO>, B<-fifo> I<FIFO>
+
+Use I<FIFO> as the command FIFO instead of C<jukebox.fifo> in the
+configuration directory.
+
+=item B<-nofifo>
+
+Do not create or use a command FIFO.
+
+=item B<-l> I<NAME>, B<-layout> I<NAME>
+
+Use layout I<NAME> for the player window.
+
+=item B<+plugin> I<ID>
+
+Enable plugin I<ID> for this startup.
+
+=item B<-plugin> I<ID>
+
+Disable plugin I<ID> for this startup.
+
+=item B<-noplugins>
+
+Disable all plugins for this startup.
+
+=item B<-searchpath> I<DIRECTORY>
+
+Add I<DIRECTORY> to the search path for plugins and layouts.  This
+option may be used more than once.
+
+=item B<-workspace> I<N>
+
+Move the initial window to workspace I<N>.  This requires the
+C<Gnome2::Wnck> Perl module.
+
+=item B<-use-gnome-session>
+
+Use the GNOME session interface when available so settings and tags can
+be saved during session logout.
+
+=item B<-import> I<FILE>
+
+Import state from I<FILE> instead of loading the normal saved state.
+
+=item B<+gzip>
+
+Save C<jukeboxrc> compressed with gzip.
+
+=item B<-gzip>
+
+Save C<jukeboxrc> without gzip compression.
+
+=item B<+xz>
+
+Save C<jukeboxrc> compressed with xz.
+
+=back
+
+=head2 Commands and existing instances
+
+=over
+
+=item B<-cmd> I<COMMAND>
+
+Execute a jukebox command.  The option may be repeated.  If a running
+instance is found, the commands are forwarded to it.  Use B<-listcmd>
+to obtain the commands supported by the current build.
+
+=item B<-ifnotrunning> I<MODE>
+
+Select what happens when B<-cmd> or a file operation cannot find a
+running instance.  I<MODE> is one of:
+
+=over
+
+=item C<normal>
+
+Start a new instance and execute the requested commands.  This is the
+default.
+
+=item C<nocmd>
+
+Start a new instance but discard the requested commands.
+
+=item C<abort>
+
+Do not start a new instance.
+
+=back
+
+=item B<-nolaunch>
+
+Equivalent to C<-ifnotrunning abort>.
+
+=back
+
+=head2 File argument actions
+
+=over
+
+=item B<-playlist>
+
+Use file and directory arguments as the playlist.  This is the default.
+
+=item B<-enqueue>
+
+Enqueue file and directory arguments.
+
+=item B<-addplaylist>
+
+Append file and directory arguments to the playlist.
+
+=item B<-insertplaylist>
+
+Insert file and directory arguments in the playlist after the current
+song.
+
+=item B<-add>
+
+Add file and directory arguments to the music library.
+
+=item B<-tagedit> I<FILE_OR_DIRECTORY> ...
+
+Open the tag editor for the supplied files or directories.
+
+=back
+
+=head2 Diagnostics and discovery
+
+=over
+
+=item B<-verbose>
+
+Print operational information, including the file being played.
+
+=item B<-debug>
+
+Enable verbose debugging output.  This implies B<-verbose>.
+
+=item B<-backtrace>
+
+Print a Perl backtrace for warnings and fatal errors.
 
 =item B<-listcmd>
 
-List the available commands and exit.
+List available jukebox commands and exit.
 
 =item B<-listlayout>
 
-List the available layouts and exit.
+List available layouts and exit.
 
 =item B<-listplugin>
 
-List the available plugins and exit.
+List available plugins and exit.
 
-=item B<-tagedit> I<FOLDER_OR_FILE> ...
+=item B<-h>, B<--help>
 
-Load songs in FOLDER_OR_FILE and display a dialog to edit their tags.
+Print the command-line help and exit.
 
 =back
+
+=head1 CONFIGURATION
+
+The default configuration directory is
+F<$XDG_CONFIG_HOME/jukebox/>.  When C<XDG_CONFIG_HOME> is unset, Glib's
+user configuration directory is used, normally F<~/.config>, making the
+usual path F<~/.config/jukebox/>.
+
+For compatibility, if the XDG directory does not yet exist and
+F<~/.jukebox/> does exist, jukebox uses F<~/.jukebox/> and prints a
+migration warning.
+
+The primary state file is C<jukeboxrc>.  It contains application
+options and library metadata and is written by jukebox.  See
+L<jukeboxrc(5)> for its role and safe handling.
 
 =head1 FILES
 
 =over
 
-=item F<~/.jukebox/tags>
+=item F<$XDG_CONFIG_HOME/jukebox/jukeboxrc>
 
-Contains songs tags and program options.
+Saved application options, library metadata, playlists, and other
+persistent state.  The file may instead have a C<.gz> or C<.xz>
+suffix when compression is enabled.
 
-=item F</usr/share/jukebox/plugins/>, F<~/.jukebox/plugins/>
+=item F<$XDG_CONFIG_HOME/jukebox/jukebox.fifo>
 
-Files with extension B<.pm> in these folders are loaded as plugins on
-startup.
+Command FIFO used for inter-process control unless B<-nofifo> is used.
+For example:
 
-=item F</usr/share/jukebox/layouts/*.layout>, F<~/.jukebox/layouts/*.layout>
+  printf '%s\n' 'PlayPause' > ~/.config/jukebox/jukebox.fifo
 
-Contains layouts definitions.
+Use C<jukebox -listcmd> for the authoritative command list.
 
-=item F<~/.jukebox/jukebox.fifo>
+=item F<$XDG_CONFIG_HOME/jukebox/plugins/>
 
-Can be used to send commands to a running jukebox, e.g.:
+User plugins.
 
-  echo CMD >~/.jukebox/jukebox.fifo
+=item F<$XDG_CONFIG_HOME/jukebox/layouts/>
 
-where CMD is (run "jukebox -listcmd" for an up-to-date list of
-commands):
+User layouts.
 
-=over
+=item F<$XDG_CONFIG_HOME/jukebox/icons/>
 
-=item NextSong
+User-provided icons referenced by layouts and interface elements.
 
-skip current song
+=item F</usr/share/jukebox/>
 
-=item PrevSong
-
-choose previously played song
-
-=item PlayPause
-
-toggle Play/Pause mode
-
-=item Stop
-
-stop playing
-
-=item Rewind SEC
-
-rewind SEC seconds
-
-=item Forward SEC
-
-forward SEC seconds
-
-=item Browser
-
-open browser window
-
-=item ShowHide
-
-hide/show jukebox windows
-
-=item Quit
-
-quit jukebox
-
-=item Save
-
-immediately save settings/song tags in F<~/.jukebox/tags>
-
-=item ChangeDisplay I<DISPLAY>
-
-migrate the program to display I<DISPLAY> (example: C<:1>)
-
-=back
+System data directory in the default installation.  It contains the
+Perl modules, default configuration, layouts, plugins, and bundled
+artwork.  The path follows the installation prefix and may differ on a
+packaged system.
 
 =back
 
 =head1 SEE ALSO
 
-L<https://github.com/jukebox-sound/jukebox>
+L<jukeboxrc(5)>, L<jukebox-layouts(7)>, L<jukebox-plugins(7)>
+
+Project repository: L<https://github.com/jukebox-sound/jukebox>
 
 =head1 AUTHORS
 
 =over
 
-=item Copyright (C) Quentin Sculo <squentin@free.fr>
+=item Copyright (C) Quentin Sculo E<lt>squentin@free.frE<gt>
 
-=item Copyright (C) Alexandr Savca <alexandr.savca89@gmail.com>
+=item Copyright (C) Alexandr Savca E<lt>alexandr.savca89@gmail.comE<gt>
 
 =back
 

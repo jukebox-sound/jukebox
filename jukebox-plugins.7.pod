@@ -1,253 +1,308 @@
 =pod
 
-=encoding UTF-8
+=encoding utf8
 
 =head1 NAME
 
-jukebox-plugins - A guide to writing plugins for the jukebox music
-player
+jukebox-plugins - plugin format and lifecycle for jukebox
 
 =head1 DESCRIPTION
 
-Jukebox is a feature-rich music player that allows users to extend its
-functionality through plugins.  Jukebox is a fork of the popular
-gmusicbrowser.  Plugins can add new features, modify existing
-behavior, or integrate with external services.  This manual provides a
-basic guide to writing plugins for jukebox.
+jukebox plugins are Perl source files discovered at startup and loaded
+on demand.  A plugin consists of a metadata block understood by the
+plugin scanner and a Perl package named from the plugin identifier.
 
-=head2 Plugin File Structure
+This manual documents the contract implemented by the jukebox plugin
+loader.  Existing modules under F</usr/share/jukebox/plugins/> are the
+best examples for feature-specific APIs and Gtk2 integration.
 
-A jukebox plugin is typically a Perl module file (ending with C<.pm>).
-It should start with a package declaration and include a special
-metadata block that jukebox uses to identify and manage the plugin.
+=head1 DISCOVERY
 
-=head2 Metadata Block
-
-The metadata block starts with C<=for gmbplugin> followed by the
-plugin's identifier, and ends with C<=cut>.  This block contains
-information about the plugin:
-
-    =for gmbplugin PLUGIN_IDENTIFIER
-    name   Plugin Name (e.g., Notify)
-    title  Plugin Title (e.g., Notify plugin)
-    desc   Plugin Description (e.g., Notifies of the playing song.)
-    req    Dependencies (e.g., perl(Gtk2::Notify))
-    =cut
+Files ending in C<.pm> or C<.pl> are searched in this order:
 
 =over
 
-=item B<PLUGIN_IDENTIFIER>
+=item *
 
-A unique identifier for your plugin (often the same as the plugin's name).
+The system plugin directory, normally F</usr/share/jukebox/plugins/>.
 
-=item B<name>
+=item *
 
-The internal name of the plugin.
+The user's F<$XDG_CONFIG_HOME/jukebox/plugins/> directory.
 
-=item B<title>
+=item *
 
-A user-friendly title for the plugin, displayed in the preferences.
-
-=item B<desc>
-
-A short description of what the plugin does.
-
-=item B<req>
-
-A list of dependencies required by the plugin.  This can include Perl
-modules (e.g., C<perl(ModuleName)>) or other system packages.
+Directories supplied with B<jukebox -searchpath>.
 
 =back
 
-=head2 Package Declaration
+A plugin is first scanned for metadata.  Its Perl code is evaluated only
+when jukebox activates that plugin.
 
-After the metadata block, you should declare the package for your plugin:
+=head1 METADATA
 
-  package GMB::Plugin::PLUGIN_IDENTIFIER;
+The first significant block in a plugin file identifies the plugin.  The
+usual form is:
 
-Replace B<PLUGIN_IDENTIFIER> with the same identifier you used in the
-metadata block.
-
-=head2 Required Subroutines
-
-A basic jukebox plugin needs to implement at least the following
-subroutines:
-
-=over
-
-=item B<Start()>
-
-This subroutine is called when the plugin is started by jukebox.  It's
-where you should initialize your plugin, connect to signals, and set
-up any necessary resources.
-
-=item B<Stop()>
-
-This subroutine is called when the plugin is stopped (e.g., when
-jukebox is closed or the plugin is disabled).  You should use this to
-clean up any resources used by your plugin (e.g., unwatch signals,
-undefine objects).
-
-=item B<prefbox()>
-
-This subroutine should return a Gtk2 widget (typically a
-B<Gtk2::VBox>) containing the preferences dialog for your plugin.
-This allows users to configure the plugin's behavior.
-
-=back
-
-=head2 Jukebox API and Helper Functions
-
-Jukebox provides several functions and global variables that plugins can use:
-
-=over
-
-=item B<::Watch($object, $event_name, \&callback)>
-
-This function allows your plugin to monitor events within jukebox.
-When the specified I<$event_name> occurs on the I<$object>, the
-I<\&callback> subroutine will be called.  For example, to watch for
-changes in the playing song, you might use:
-
-    ::Watch($notify, 'PlayingSong', \&Changed)
-
-=item B<::UnWatch_all($object)>
-
-This function removes all event watches associated with the given
-I<$object>.
-
-=item B<::SetDefaultOptions(OPT, ...)>
-
-This function is used to set default values for your plugin's options.
-The I<OPT> argument is a constant (e.g., C<'PLUGIN_IDENTIFIER_'>) that
-serves as a prefix for your plugin's option names.
-
-=item B<::NewPrefEntry($option_name, $label, %options)>
-
-Creates a Gtk2 entry widget for a preference setting.
-
-=item B<::NewPrefSpinButton($option_name, $min, $max, %options)>
-
-Creates a Gtk2 spin button widget for a preference setting.
-
-=item B<::NewPrefCheckButton($option_name, $label, %options)>
-
-Creates a Gtk2 check button widget for a preference setting.
-
-=item B<::ReplaceFields($song_id, $template)>
-
-Replaces placeholders (like C<%S> for song title, C<%a> for artist,
-C<%l> for album) in a template string with the metadata of the song
-identified by I<$song_id>.
-
-=item B<::ReplaceFieldsAndEsc($song_id, $template)>
-
-Similar to B<::ReplaceFields()>, but also escapes any markup in the
-replaced values.
-
-=item B<$::SongID>
-
-A global variable that holds the ID of the currently playing song.
-
-=item B<$::Options{OPT . 'option_name'}>
-
-A hash containing the user-configured options for your plugin.
-
-=item B<$::MainWindow>
-
-A global variable that might hold the main jukebox window object.
-
-=item B<::IsWindowVisible($window_object)>
-
-A function to check if a given Gtk2 window object is visible.
-
-=item B<Playback Control Functions>
-
-Functions like B<::PrevSong()>, B<::Stop()>, B<::NextSong()>,
-B<::PlayPause()> (not seen in the example but likely available) can be
-called to control playback.
-
-=item B<::ShowHide()>
-
-A function to show or hide the main jukebox window.
-
-=item B<Songs::Get_gid($song_id, $field)>
-
-A function to get the group ID (e.g., for album art) associated with a
-song.
-
-=item B<AAPicture::pixbuf($type, $gid, $size, $keep_aspect)>
-
-A function to load and resize a picture (e.g., album art).
-
-=item B<$::Command{CommandName} = [\&callback, "Menu Text"];>
-
-Allows you to add custom commands to jukebox's menus.
-
-=back
-
-=head2 Example Plugin Structure
-
-  =for gmbplugin MY_PLUGIN
-  name    MyPlugin
-  title   My Awesome Plugin
-  desc    Does something cool.
-  req     perl(Some::Module)
+  =for gmbplugin EXAMPLE
+  name    Example
+  title   Example plugin
+  version 1.0
+  author  Example Hacker <hacker@example.invalid>
+  desc    Demonstrates the plugin interface.
+  req     perl(Some::Module, package-name) exec(tool, package-name)
   =cut
-  
-  package GMB::Plugin::MY_PLUGIN;
-  
-  use strict;
-  use warnings;
-  
-  use constant {
-      OPT => 'PLUGIN_MY_PLUGIN_',
-  };
-  
-  ::SetDefaultOptions(
-      OPT,
-      some_option => 'default value',
-  );
-  
+
+The identifier after C<gmbplugin> must begin with a letter and otherwise
+contain word characters.  The same identifier is used for the Perl
+package and the C<PLUGIN_ID> option that enables the plugin.
+
+Recognized metadata includes:
+
+=over
+
+=item C<name>
+
+Required display name.  A metadata block without C<name> is ignored.
+
+=item C<title>
+
+Longer title displayed in the preferences interface.
+
+=item C<version>
+
+Plugin version.  When duplicate plugin identifiers are discovered,
+jukebox keeps the newer unloaded version unless one is already loaded.
+
+=item C<author>
+
+Author attribution.  The key may occur more than once.
+
+=item C<desc>
+
+Description.  Multiple C<desc> lines are concatenated.
+
+=item C<req>
+
+Optional runtime requirements.  The loader understands the following
+forms:
+
+  perl(Module::Name, suggested-package-names)
+  exec(program, suggested-package-names)
+  file(/absolute/path, suggested-package-names)
+
+The suggested package-name part is optional and is shown to the user
+when a requirement is missing.
+
+=item C<url>
+
+Optional project or documentation URL displayed with plugin metadata.
+
+=back
+
+=head1 PACKAGE AND LIFECYCLE
+
+For plugin id C<EXAMPLE>, the implementation package must be:
+
+  package GMB::Plugin::EXAMPLE;
+
+The loader invokes lifecycle methods in that package when they exist.
+
+=over
+
+=item C<Init()>
+
+Optional early initialization.  During normal startup it is called after
+saved options have been read and before the music library has finished
+loading.  When a plugin is enabled interactively, C<Init()> is called
+before C<Start()>.
+
+=item C<Start($startup)>
+
+Optional activation hook.  It is called once the library is available,
+or immediately when the user enables a plugin.  Plugins normally create
+watches, register commands, or initialize runtime state here.
+
+=item C<Stop()>
+
+Optional deactivation hook.  Remove commands, event watches, timers,
+windows, and other resources owned by the plugin here.
+
+=item C<prefbox()>
+
+Return the Gtk2 widget shown on the plugin's preferences page.  Loaded
+plugins are expected to provide this method because the preferences
+interface calls it directly.
+
+=back
+
+A minimal plugin therefore looks like:
+
+  =for gmbplugin EXAMPLE
+  name    Example
+  title   Example plugin
+  desc    Minimal plugin example.
+  =cut
+
+  package GMB::Plugin::EXAMPLE;
+
   sub Start {
-      print "MyPlugin started!\n";
-      # Initialize resources, connect signals, etc.
+      # establish runtime state
   }
-  
+
   sub Stop {
-      print "MyPlugin stopped.\n";
-      # Clean up resources.
+      # release runtime state
   }
-  
+
   sub prefbox {
-      my $vbox = Gtk2::VBox->new(::FALSE, 2);
-      
-      my $entry = ::NewPrefEntry(
-          OPT . 'some_option',
-          "Some Option:",
-          tip => "Enter a value here."
-      );
-      
-      $vbox->pack_start($entry, ::FALSE, ::FALSE, 2);
-      
-      return $vbox;
+      return Gtk2::Label->new('No options');
   }
-  
+
   1;
 
-=head2 Further Learning
+=head1 OPTIONS
 
-To write more advanced plugins, you will need to learn more about Perl
-programming, the Gtk2 toolkit (as jukebox uses it for its interface),
-and the specific API provided by jukebox.  Examining the code of
-existing plugins (like the B<notify.pm> plugin) can also be very
-helpful in understanding how things work.  This manual provides a
-basic foundation for writing jukebox plugins.  As you develop more
-complex plugins, you will likely need to refer to the jukebox source
-code and potentially the documentation for the underlying libraries
-(like Gtk2 and any other modules you use).
+Plugin settings live in the global C<%::Options> hash and are persisted
+inside C<jukeboxrc>.  The established convention is to give each plugin
+a private prefix:
+
+  use constant OPT => 'PLUGIN_EXAMPLE_';
+
+  ::SetDefaultOptions(
+      OPT,
+      enabled_thing => 1,
+      label         => 'value',
+  );
+
+C<::SetDefaultOptions()> only supplies a value when the corresponding
+option is not already defined, so saved user choices are preserved.
+
+Preference helper functions such as C<::NewPrefCheckButton()>,
+C<::NewPrefEntry()>, and C<::NewPrefSpinButton()> bind common Gtk2
+controls to entries in C<%::Options>.  Plugins may also build ordinary
+Gtk2 widgets directly when their configuration is more structured.
+
+=head1 EVENTS
+
+C<::Watch()> subscribes an object or callback to a jukebox event:
+
+  ::Watch($object, PlayingSong => \&song_changed);
+
+For Gtk2 objects, jukebox automatically connects object destruction to
+watch cleanup.  C<::UnWatch_all($object)> explicitly removes all event
+and filter watches associated with an object.
+
+A plugin should release long-lived watches during C<Stop()> when their
+owner is not naturally destroyed with the plugin UI.
+
+Event names are part of jukebox's internal API rather than a separately
+versioned protocol.  Search existing plugins and C<HasChanged()> calls
+in the source tree before depending on a particular event.
+
+=head1 COMMANDS
+
+Plugins can register commands in C<%::Command>.  For example:
+
+  $::Command{ExampleAction} = [\&run_action, 'Example action'];
+
+A plugin that adds a command must remove it again from C<%::Command> in
+C<Stop()>.  Registered commands can be used by layouts, key bindings,
+the command FIFO, and B<jukebox -cmd> according to the command's
+implementation.
+
+Use B<jukebox -listcmd> to inspect the commands registered by the
+running build and enabled plugin set.
+
+=head1 COMMON JUKEBOX HELPERS
+
+The following helpers are used by in-tree plugins and are useful when
+the corresponding behavior is required:
+
+=over
+
+=item C<::ReplaceFields($song_id, $template)>
+
+Expand jukebox field variables in a template for a song.
+
+=item C<::ReplaceFieldsAndEsc($song_id, $template)>
+
+Expand field variables and escape substituted values for Pango markup.
+
+=item C<::PangoEsc($text)>
+
+Escape text before embedding it in Pango markup.
+
+=item C<Songs::Get($song_id, @fields)>
+
+Read song fields from the library.
+
+=item C<Songs::Get_gid($song_id, $field)>
+
+Return the group id for a grouped field such as C<artist> or C<album>.
+
+=item C<Songs::MakeFilterFromGID($field, $gid)>
+
+Construct a song filter for a grouped-field identity.
+
+=back
+
+These are source-level APIs used by the bundled plugins, not a stable
+external ABI.  A plugin intended to track jukebox development should be
+tested against the target jukebox version.
+
+=head1 USER INTERFACE
+
+jukebox uses Gtk2.  Plugin preferences and plugin-provided context views
+should therefore use Gtk2 widgets and follow GTK state and theme
+semantics rather than hard-coding foreground/background colors.
+
+When displaying library entities obtained from an external service,
+keep remote metadata distinct from local library identity.  Resolve the
+remote entity to local data before exposing local-only operations such
+as filtering or queue construction.
+
+=head1 DEVELOPMENT WORKFLOW
+
+A practical workflow for a new plugin is:
+
+=over
+
+=item 1.
+
+Start from the smallest bundled plugin with a similar lifecycle.
+
+=item 2.
+
+Choose a unique metadata id and matching C<GMB::Plugin::ID> package.
+
+=item 3.
+
+Use a private C<PLUGIN_ID_> option prefix and declare defaults before
+runtime initialization.
+
+=item 4.
+
+Acquire runtime resources in C<Start()> and release them in C<Stop()>.
+
+=item 5.
+
+Return a Gtk2 preferences widget from C<prefbox()>.
+
+=item 6.
+
+Run jukebox with B<-debug> while developing and use B<-searchpath> to
+load the development copy without installing it system-wide.
+
+=back
+
+=head1 SEE ALSO
+
+L<jukebox(1)>, L<jukeboxrc(5)>, L<jukebox-layouts(7)>
+
+Bundled plugin sources are normally installed in
+F</usr/share/jukebox/plugins/>.
 
 =cut
 
-# vim: sw=2 ts=2 sts=2 et cc=72 tw=70
+# vim: cc=72 tw=70
 # End of file.
