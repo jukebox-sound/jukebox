@@ -905,15 +905,11 @@ sub set_buffer {
 }
 
 sub similar_artist_local_markup {
-	my ($widget, $name, $gid) = @_;
+	my ($name, $gid) = @_;
 
-	my $color = $widget->style->text_aa("normal")->to_string;
-	my $fgcolor = substr($color, 0, 3)
-	  . substr($color, 5, 2)
-	  . substr($color, 9, 2);
 	my $stats = AA::ReplaceFields(
 		$gid,
-		' <span foreground="' . $fgcolor . '">(%X « %s)</span>',
+		' <span size="small">(%X « %s)</span>',
 		"artists",
 		1
 	);
@@ -978,7 +974,6 @@ sub tv_contextmenu {
 						$iter,
 						0,
 						similar_artist_local_markup(
-							$treeview,
 							$resolved->{local_name},
 							$resolved->{gid}
 						),
@@ -1502,7 +1497,7 @@ sub loaded {
                     $s_artist{url} = "local";
                     $self->{store}->set(
                         $self->{store}->append,               0,
-                        similar_artist_local_markup($self, $display_name, $aID), 1,
+                        similar_artist_local_markup($display_name, $aID), 1,
                         $s_artist{match} * 100,               2,
                         $s_artist{url},                       3,
                         $aID,                                 4,
