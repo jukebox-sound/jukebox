@@ -352,7 +352,7 @@ sub new {
 	$treeview->set_has_tooltip(1);
 	$treeview->set_tooltip_text(
 		  "Middle-click on local artists to set a filter on them, "
-		. "right-click non-local artists to search for them on the web."
+		. "right-click non-local artists to map them locally or search for them on the web."
 	);
 
 	my $renderer = Gtk2::CellRendererText->new;
@@ -607,7 +607,7 @@ sub resolve_artist {
 }
 
 sub artist_alias_dialog {
-	my ($parent, $remote_name, $local_name) = @_;
+	my ($parent, $remote_name, $local_name, $lock_remote) = @_;
 
 	my $dialog = Gtk2::Dialog->new(
 		"Artist alias",
@@ -620,11 +620,17 @@ sub artist_alias_dialog {
 
 	my $remote = Gtk2::Entry->new;
 	$remote->set_text($remote_name || '');
+	$remote->set_editable(0) if $lock_remote;
 
 	my $local = Gtk2::ComboBoxEntry->new_text;
 	$local->append_text($_) for @{Songs::ListAll('artist')};
 	$local->child->set_text($local_name || '');
 	$local->child->set_activates_default(::TRUE);
+
+	my $completion = Gtk2::EntryCompletion->new;
+	$completion->set_model($local->get_model);
+	$completion->set_text_column(0);
+	$local->child->set_completion($completion);
 
 	my $grid = Gtk2::Table->new(2, 2, ::FALSE);
 	$grid->set_row_spacings(4);
@@ -898,6 +904,23 @@ sub set_buffer {
 	$self->{buffer}->set_modified(0);
 }
 
+sub similar_artist_local_markup {
+	my ($widget, $name, $gid) = @_;
+
+	my $color = $widget->style->text_aa("normal")->to_string;
+	my $fgcolor = substr($color, 0, 3)
+	  . substr($color, 5, 2)
+	  . substr($color, 9, 2);
+	my $stats = AA::ReplaceFields(
+		$gid,
+		' <span foreground="' . $fgcolor . '">(%X « %s)</span>',
+		"artist",
+		1
+	);
+
+	return ::PangoEsc($name) . $stats;
+}
+
 sub tv_contextmenu {
 	my ($treeview, $event) = @_;
 	return 0 unless $treeview;
@@ -934,6 +957,42 @@ sub tv_contextmenu {
 			my $title = Gtk2::MenuItem->new("Search for artist on:");
 
 			$menu->prepend($title);
+
+			my $separator = Gtk2::SeparatorMenuItem->new;
+			my $alias = Gtk2::MenuItem->new("Map to local artist...");
+			$alias->signal_connect(
+				activate => sub {
+					my ($remote, $local) = artist_alias_dialog(
+						$treeview->get_toplevel,
+						$artist,
+						undef,
+						1
+					);
+					return unless defined $remote;
+
+					$::Options{OPT . 'ArtistAliases'}{$remote} = $local;
+					my $resolved = resolve_artist($remote);
+					return unless $resolved;
+
+					$store->set(
+						$iter,
+						0,
+						similar_artist_local_markup(
+							$treeview,
+							$resolved->{local_name},
+							$resolved->{gid}
+						),
+						2,
+						"local",
+						3,
+						$resolved->{gid},
+						4,
+						$remote
+					);
+				}
+			);
+			$menu->prepend($separator);
+			$menu->prepend($alias);
 			$menu->show_all;
 			$menu->popup(
 				undef,
@@ -1439,25 +1498,11 @@ sub loaded {
                 my $resolved = resolve_artist($s_artist{name}, $artist_index);
                 my $aID = $resolved ? $resolved->{gid} : undef;
                 my $display_name = $resolved ? $resolved->{local_name} : $s_artist{name};
-                my $stats = '';
-                my $color = $self->style->text_aa("normal")->to_string;
-                my $fgcolor =
-                    substr($color, 0, 3)
-                  . substr($color, 5, 2)
-                  . substr($color, 9, 2);
                 if ($aID) {
-                    $stats = AA::ReplaceFields(
-                        $aID,
-                        ' <span foreground="'
-                          . $fgcolor
-                          . '">(%X « %s)</span>',
-                        "artist",
-                        1
-                    );
                     $s_artist{url} = "local";
                     $self->{store}->set(
                         $self->{store}->append,               0,
-                        ::PangoEsc($display_name) . $stats, 1,
+                        similar_artist_local_markup($self, $display_name, $aID), 1,
                         $s_artist{match} * 100,               2,
                         $s_artist{url},                       3,
                         $aID,                                 4,
@@ -1467,7 +1512,7 @@ sub loaded {
                 elsif ($::Options{OPT . 'SimilarLocal'} == 0) {
                     $self->{store}->set(
                         $self->{store}->append,               0,
-                        ::PangoEsc($s_artist{name}) . $stats, 1,
+                        ::PangoEsc($s_artist{name}), 1,
                         $s_artist{match} * 100,               2,
                         $s_artist{url},                       3,
                         $aID,                                 4,
