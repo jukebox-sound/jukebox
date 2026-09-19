@@ -190,6 +190,7 @@ my %queuemode = (
 	SimilarRating      => 20,
 	SimilarLocal       => 0,
 	SimilarExcludeSeed => 0,
+	ArtistAliases       => {},
 
 #	Eventformat => '%title at %name<br>%startDate<br>%city (%country)<br><br>',
 #	Eventformat_history => [
@@ -572,6 +573,17 @@ sub resolve_artist {
 	my ($remote_name, $index) = @_;
 	return unless defined $remote_name && length $remote_name;
 
+	my $aliases = $::Options{OPT . 'ArtistAliases'} ||= {};
+	if (my $local_name = $aliases->{$remote_name}) {
+		my $gid = Songs::Search_artistid($local_name);
+		return {
+			gid         => $gid,
+			local_name  => $local_name,
+			remote_name => $remote_name,
+			match       => 'alias',
+		} if defined $gid;
+	}
+
 	my $exact_gid = Songs::Search_artistid($remote_name);
 	if (defined $exact_gid) {
 		return {
@@ -592,6 +604,136 @@ sub resolve_artist {
 		remote_name => $remote_name,
 		match       => 'normalized',
 	};
+}
+
+sub artist_alias_dialog {
+	my ($parent, $remote_name, $local_name) = @_;
+
+	my $dialog = Gtk2::Dialog->new(
+		"Artist alias",
+		$parent,
+		[ qw/destroy-with-parent/ ],
+		'gtk-cancel' => 'cancel',
+		'gtk-ok'     => 'ok',
+	);
+	$dialog->set_default_response('ok');
+
+	my $remote = Gtk2::Entry->new;
+	$remote->set_text($remote_name || '');
+
+	my $local = Gtk2::ComboBoxEntry->new_text;
+	$local->append_text($_) for @{Songs::ListAll('artist')};
+	$local->child->set_text($local_name || '');
+	$local->child->set_activates_default(::TRUE);
+
+	my $grid = Gtk2::Table->new(2, 2, ::FALSE);
+	$grid->set_row_spacings(4);
+	$grid->set_col_spacings(8);
+	my $remote_label = Gtk2::Label->new("Last.fm artist:");
+	my $local_label  = Gtk2::Label->new("Local artist:");
+	$remote_label->set_alignment(0, .5);
+	$local_label->set_alignment(0, .5);
+	$grid->attach_defaults($remote_label, 0, 1, 0, 1);
+	$grid->attach_defaults($remote,       1, 2, 0, 1);
+	$grid->attach_defaults($local_label,  0, 1, 1, 2);
+	$grid->attach_defaults($local,        1, 2, 1, 2);
+	$dialog->vbox->pack_start($grid, ::TRUE, ::TRUE, 8);
+	$dialog->show_all;
+
+	while ($dialog->run eq 'ok') {
+		my $from = $remote->get_text;
+		my $to   = $local->child->get_text;
+		$from =~ s/^\s+|\s+$//g;
+		$to   =~ s/^\s+|\s+$//g;
+
+		if (!length $from || !defined Songs::Search_artistid($to)) {
+			::ErrorMessage(
+				"Choose a Last.fm artist name and an existing local artist.",
+				$dialog
+			);
+			next;
+		}
+
+		$dialog->destroy;
+		return ($from, $to);
+	}
+
+	$dialog->destroy;
+	return;
+}
+
+sub artist_alias_editor {
+	my $box = Gtk2::VBox->new(0, 4);
+	my $store = Gtk2::ListStore->new(('Glib::String') x 2);
+	my $tree = Gtk2::TreeView->new($store);
+
+	$tree->append_column(
+		Gtk2::TreeViewColumn->new_with_attributes(
+			"Last.fm artist", Gtk2::CellRendererText->new, text => 0
+		)
+	);
+	$tree->append_column(
+		Gtk2::TreeViewColumn->new_with_attributes(
+			"Local artist", Gtk2::CellRendererText->new, text => 1
+		)
+	);
+
+	my $refresh = sub {
+		$store->clear;
+		my $aliases = $::Options{OPT . 'ArtistAliases'} ||= {};
+		for my $remote (sort { lc($a) cmp lc($b) } keys %$aliases) {
+			$store->set($store->append, 0, $remote, 1, $aliases->{$remote});
+		}
+	};
+
+	my $selection_values = sub {
+		my ($model, $iter) = $tree->get_selection->get_selected;
+		return unless $iter;
+		return ($model->get($iter, 0), $model->get($iter, 1));
+	};
+
+	my $add = ::NewIconButton('gtk-add', "Add");
+	my $edit = ::NewIconButton('gtk-edit', "Edit");
+	my $remove = ::NewIconButton('gtk-remove', "Remove");
+
+	$add->signal_connect(clicked => sub {
+		my ($remote, $local) = artist_alias_dialog($box->get_toplevel);
+		return unless defined $remote;
+		$::Options{OPT . 'ArtistAliases'}{$remote} = $local;
+		$refresh->();
+	});
+	$edit->signal_connect(clicked => sub {
+		my ($old_remote, $old_local) = $selection_values->();
+		return unless defined $old_remote;
+		my ($remote, $local) = artist_alias_dialog($box->get_toplevel, $old_remote, $old_local);
+		return unless defined $remote;
+		delete $::Options{OPT . 'ArtistAliases'}{$old_remote};
+		$::Options{OPT . 'ArtistAliases'}{$remote} = $local;
+		$refresh->();
+	});
+	$remove->signal_connect(clicked => sub {
+		my ($remote) = $selection_values->();
+		return unless defined $remote;
+		delete $::Options{OPT . 'ArtistAliases'}{$remote};
+		$refresh->();
+	});
+	$tree->signal_connect(row_activated => sub { $edit->clicked; });
+
+	my $sw = Gtk2::ScrolledWindow->new;
+	$sw->set_policy('automatic', 'automatic');
+	$sw->set_shadow_type('etched-in');
+	$sw->set_size_request(-1, 120);
+	$sw->add($tree);
+
+	my $buttons = Gtk2::HButtonBox->new;
+	$buttons->set_layout('start');
+	$buttons->add($_) for $add, $edit, $remove;
+
+	$box->pack_start($sw, ::TRUE, ::TRUE, 0);
+	$box->pack_start($buttons, ::FALSE, ::FALSE, 0);
+	$refresh->();
+
+	return $box;
 }
 
 sub prefbox {
@@ -723,7 +865,11 @@ sub prefbox {
 		)
 	);
 
-	$vbox->pack_start($_, ::FALSE, ::FALSE, 5) for $titlebox, $frame_bio, $frame_similar; #$frame_albums
+	my $frame_aliases = Gtk2::Frame->new("Artist aliases");
+	$frame_aliases->add(artist_alias_editor());
+
+	$vbox->pack_start($_, ::FALSE, ::FALSE, 5)
+		for $titlebox, $frame_bio, $frame_similar, $frame_aliases; #$frame_albums
 
 	return $vbox;
 }
