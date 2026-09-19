@@ -1,25 +1,28 @@
-TODO jukebox
-============
+# jukebox TODO
 
+## Bugs
 
-No milestone
-------------
+- [ ] Fix "Open containing folder" with terminal file managers such as vifm.
+  Reproduce the failure through the desktop directory MIME association and trace
+  `openfolder()` and `run_system_cmd()` before choosing a fix.  Keep the observed
+  launch failure separate from the old assumption that `run_system_cmd()` is the
+  cause.
 
-- [ ] FIXME: set vifm as inode/directory opener:
-  `gio mime inode/directory vifm`
-  Now, try to open the directory from jukebox using vifm:
-  Right click on song, choose "Open containing folder".
-  The trouble may hide in `sub run_system_cmd()`.
+## UI and desktop integration
 
-- [ ] Use `gtk-leave-fullscreen` for fullscreen icon.
+- [ ] Make fullscreen actions use state-appropriate icons consistently.
+  `Layout::PictureBrowser` already switches between `gtk-fullscreen` and
+  `gtk-leave-fullscreen`; other fullscreen actions still hard-code
+  `gtk-fullscreen`.
 
-- [ ] Get rid of `Gettext` artefacts.
+- [ ] Audit bundled `gmb-*` icons against GTK2 theme/stock equivalents.  Prefer a
+  system icon when it has the same semantics, but retain jukebox-specific icons
+  when no suitable themed icon exists.
 
-- [ ] Write new Makefile (current is broken).
+## Cleanup
 
-- [ ] Convert `layout_doc.mkd` into manual page.
-
-- [ ] Get more useful docs from gmusicbrowser.wiki.
-
-- [ ] Use system icons?  The problem is that jukebox has a large
-  number of icons that aren't covered by system icons.
+- [ ] Remove the inherited Gettext/i18n machinery if jukebox is to remain
+  untranslated.  No locale catalogs are shipped, but startup still probes
+  `Locale::Messages`/`Locale::gettext` and translation wrappers remain in the
+  source.  Treat this as a dedicated behavior-preserving cleanup rather than a
+  search-and-replace pass.
