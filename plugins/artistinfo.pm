@@ -32,6 +32,7 @@ use warnings;
 use utf8;
 
 use JSON::PP;
+use Unicode::Normalize qw(NFC);
 
 my $API_URL = "http://ws.audioscrobbler.com/2.0";
 my $API_KEY = "7aa688c2466dc17263847da16f297835";
@@ -541,6 +542,56 @@ sub cancel {
 
 	delete $::ToDo{'8_artistinfo' . $self};
 	$self->{waiting}->abort if $self->{waiting};
+}
+
+sub artist_match_key {
+	my ($name) = @_;
+	return '' unless defined $name;
+
+	$name = NFC($name);
+	$name =~ s/^\s+|\s+$//g;
+	$name =~ s/\s+/ /g;
+
+	return lc $name;
+}
+
+sub build_local_artist_index {
+	my %index;
+
+	for my $name (@{Songs::ListAll('artist')}) {
+		my $gid = Songs::Search_artistid($name);
+		next unless defined $gid;
+
+		push @{$index{artist_match_key($name)}}, [$name, $gid];
+	}
+
+	return \%index;
+}
+
+sub resolve_artist {
+	my ($remote_name, $index) = @_;
+	return unless defined $remote_name && length $remote_name;
+
+	my $exact_gid = Songs::Search_artistid($remote_name);
+	if (defined $exact_gid) {
+		return {
+			gid         => $exact_gid,
+			local_name  => $remote_name,
+			remote_name => $remote_name,
+			match       => 'exact',
+		};
+	}
+
+	$index ||= build_local_artist_index();
+	my $matches = $index->{artist_match_key($remote_name)} || [];
+	return unless @$matches == 1;
+
+	return {
+		gid         => $matches->[0][1],
+		local_name  => $matches->[0][0],
+		remote_name => $remote_name,
+		match       => 'normalized',
+	};
 }
 
 sub prefbox {
@@ -1227,6 +1278,7 @@ sub loaded {
         $self->{store}->clear;
         $self->{sw1}->hide;
         $self->{sw2}->show;
+        my $artist_index = build_local_artist_index();
         for my $s_artist (split /<\/artist>/, $data) {
             my %s_artist;
 
@@ -1238,7 +1290,9 @@ sub loaded {
             next unless $s_artist{name};
 
             if ($s_artist{match} >= $::Options{OPT . 'SimilarRating'} / 100) {
-                my $aID   = Songs::Search_artistid($s_artist{name});
+                my $resolved = resolve_artist($s_artist{name}, $artist_index);
+                my $aID = $resolved ? $resolved->{gid} : undef;
+                my $display_name = $resolved ? $resolved->{local_name} : $s_artist{name};
                 my $stats = '';
                 my $color = $self->style->text_aa("normal")->to_string;
                 my $fgcolor =
@@ -1257,7 +1311,7 @@ sub loaded {
                     $s_artist{url} = "local";
                     $self->{store}->set(
                         $self->{store}->append,               0,
-                        ::PangoEsc($s_artist{name}) . $stats, 1,
+                        ::PangoEsc($display_name) . $stats, 1,
                         $s_artist{match} * 100,               2,
                         $s_artist{url},                       3,
                         $aID,                                 4,
@@ -1407,6 +1461,7 @@ sub PopulateQueue {
 	my $nb = $::Options{MaxAutoFill} - @$::Queue;
 	return unless $nb > 0;
 	my @artist_gids;
+	my $artist_index = build_local_artist_index();
 	for my $s_artist (split /<\/artist>/, $data) {
 		my %s_artist;
 		$s_artist{$1} = ::decode_html($2) while $s_artist =~ m#<(\w+)>([^<]*)</\1>#g;
@@ -1414,8 +1469,8 @@ sub PopulateQueue {
 		next unless $s_artist{name};
 
 		if ($s_artist{match} >= $::Options{OPT . 'SimilarRating'} / 100) {
-			my $aID = Songs::Search_artistid($s_artist{name});
-			push(@artist_gids, $aID) if $aID;
+			my $resolved = resolve_artist($s_artist{name}, $artist_index);
+			push(@artist_gids, $resolved->{gid}) if $resolved;
 		}
 	}
 
