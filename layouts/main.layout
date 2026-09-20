@@ -177,6 +177,7 @@ VBmain		= 2EqualizerPresets _Equalizer
 Title		= _"Equalizer"
 
 [Progress]
+Window		= fixedsize=-1x-1,typehint=utility,transient=1
 VBmain		= _VProgress(lastclose=1)
 Title		= _"Progress"
 
