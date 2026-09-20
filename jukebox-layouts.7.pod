@@ -601,6 +601,20 @@ Example:
 
   fixedsize=200x-1
 
+=item - B<typehint>
+
+Set the window type hint passed to GTK.  Window managers may use this
+hint to decide how a window should be managed.  For example, a compact
+tool window can use:
+
+  typehint=utility
+
+=item - B<transient>
+
+If set to 1, make the window transient for the main jukebox window.
+This is appropriate for auxiliary windows whose useful context is the
+main player window, and allows window managers to manage them as such.
+
 =item - B<sticky>, B<ontop>, B<below> and B<fullscreen>
 
 Can be set to 1 (true) or 0 (false).

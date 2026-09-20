@@ -172,7 +172,7 @@ VSize= 100 VolumeSlider
 VBox = Volume(xalign=.5) _VolumeSlider(vertical=1)
 
 [Equalizer]
-Window		= size=300x160,uniqueid=Equalizer,ifexist=replace
+Window		= fixedsize=300x160,typehint=utility,transient=1,uniqueid=Equalizer,ifexist=replace
 VBmain		= 2EqualizerPresets _Equalizer
 Title		= _"Equalizer"
 

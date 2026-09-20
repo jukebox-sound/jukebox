@@ -3090,6 +3090,9 @@ sub SetWindowOptions {
 	$self->set_decorated(0)         if $opt->{nodecoration};
 	$self->set_skip_pager_hint(1)   if $opt->{skippager};
 	$self->set_skip_taskbar_hint(1) if $opt->{skiptaskbar};
+	if ($opt->{transient} && $::MainWindow && $self != $::MainWindow) {
+		$self->set_transient_for($::MainWindow);
+	}
 
 	$self->{opacity} = $opt->{opacity} if defined $opt->{opacity};
 	$self->{hidden} = {$opt->{hidden} =~ m/(\w+)(?::?(\d+x\d+))?/g} if $opt->{hidden};
