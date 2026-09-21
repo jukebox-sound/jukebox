@@ -4,3 +4,7 @@ Some of them are inherited from the gmusicbrowser project, some from Papirus
 Icon Theme (<https://github.com/PapirusDevelopmentTeam>) which is licensed
 through the GNU General Public License v3 <https://gnu.org/licenses/gpl.html>.
 Read the LICENSE file for details.
+
+The canonical application icon is jukebox.svg. Installed builds expose it as
+the freedesktop icon-theme name "jukebox"; GTK and desktop components should
+request that name rather than loading a fixed-size private tray bitmap.
