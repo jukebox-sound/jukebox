@@ -2458,8 +2458,7 @@ sub keybinding_longname {
 }
 
 our ($NBVolIcons, $NBQueueIcons);
-our %TrayIcon;
-my $icon_factory;
+my ($icon_factory, $ApplicationIconPathAdded);
 
 my %IconsFallbacks = (
 	'gmb-queue0'          => 'gmb-queue',
@@ -2519,6 +2518,15 @@ sub Find_star_pictures {
 	return @files;
 }
 
+sub EnsureApplicationIconTheme {
+	return if $ApplicationIconPathAdded;
+
+	# Appended paths are fallback paths: the active desktop theme and its
+	# inherited themes keep precedence over the bundled source-tree icon.
+	Gtk2::IconTheme->get_default->append_search_path(PIXPATH);
+	$ApplicationIconPathAdded = 1;
+}
+
 sub LoadIcons {
 	my %icons;
 
@@ -2567,26 +2575,11 @@ sub LoadIcons {
 		closedir $dh;
 	}
 
-	# fallback if no icon named 'jukebox' is installed
-	$icons{jukebox} ||= PIXPATH . 'jukebox.svg' unless Gtk2::IconTheme->get_default->get_icon_sizes('jukebox');
-
-	if (my $file = delete $icons{jukebox}) {
-		eval { Gtk2::Window->set_default_icon_from_file($file); };
-		warn $@ if $@;
-	} else {
-		Gtk2::Window->set_default_icon_name('jukebox');
-	}
-
-	# trayicons
-	{
-		%TrayIcon = ();
-		my $prefix = $TrayIcon{'default'} = $icons{trayicon} || PIXPATH . 'trayicon.png';
-		$prefix =~ s/\.[^.]+$//;
-		for my $key (qw/play pause/) {
-			($TrayIcon{$key}) = grep -r $_, map "$prefix-$key.$_", qw/png svg/;
-		}
-		UpdateTrayIcon(1);
-	}
+	# Application identity belongs to the desktop icon theme.  The bundled SVG
+	# is appended only as a last-resort fallback for the same icon name.
+	EnsureApplicationIconTheme();
+	delete $icons{jukebox};
+	Gtk2::Window->set_default_icon_name('jukebox');
 
 	$NBVolIcons = 0;
 	$NBVolIcons++ while $icons{'gmb-vol' . $NBVolIcons};
@@ -2606,7 +2599,6 @@ sub LoadIcons {
 	$icon_factory = Gtk2::IconFactory->new;
 	$icon_factory->add_default;
 	for my $stock_id (keys %icons, keys %IconsFallbacks) {
-		next if $stock_id =~ m/^trayicon/;
 		my %h = (stock_id => $stock_id);
 
 		#label    => $$ref[1],
@@ -13263,18 +13255,17 @@ sub PopupLayout {
 	my $popup = Layout::Window::Popup->new($layout, $widget);
 }
 
-sub UpdateTrayIcon {
-	my $force = shift;
-
+sub SetTrayIconImage {
 	return unless $TrayIcon;
-	return unless $force || $TrayIcon{play} || $TrayIcon{pause};
 
-	my $state = !defined $TogPlay ? 'default' : $TogPlay ? 'play' : 'pause';
-	$state = 'default' unless $TrayIcon{$state};
+	EnsureApplicationIconTheme();
+	if ($TrayIcon->isa('Gtk2::StatusIcon')) {
+		$TrayIcon->set_from_icon_name('jukebox');
 
-	my $pb = $TrayIcon{'PixBuf_' . $state} ||= eval { Gtk2::Gdk::Pixbuf->new_from_file($TrayIcon{$state}) };
-	my $widget = $TrayIcon->isa('Gtk2::StatusIcon') ? $TrayIcon : $TrayIcon->child->child;
-	$widget->set_from_pixbuf($pb);
+		return;
+	}
+
+	$TrayIcon->child->child->set_from_icon_name('jukebox', 'small-toolbar');
 }
 
 sub Gtk2::StatusIcon::child { $_[0] }
@@ -13343,8 +13334,7 @@ sub CreateTrayIcon {
 		}
 	);
 
-	UpdateTrayIcon(1);
-	Watch($TrayIcon, Playing => sub { UpdateTrayIcon(); });
+	SetTrayIconImage();
 }
 
 sub SetTrayTipDelay {

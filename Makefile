@@ -138,6 +138,8 @@ check-install: check
 	test -f "${BUILDDIR}/stage${JUKEBOXDATA}/jukebox_layout.pm"
 	test -f "${BUILDDIR}/stage${JUKEBOXDATA}/plugins/artistinfo.pm"
 	test -f "${BUILDDIR}/stage${JUKEBOXDATA}/layouts/main.layout"
+	test -f "${BUILDDIR}/stage${APPDIR}/jukebox.desktop"
+	test -f "${BUILDDIR}/stage${ICONDIR}/scalable/apps/jukebox.svg"
 	test -f "${BUILDDIR}/stage${MANPREFIX}/man5/jukeboxrc.5"
 
 clean:

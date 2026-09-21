@@ -34,7 +34,7 @@ my %mactions = (
 	next      => "Next",
 );
 
-my ($indicator, $iconpath);
+my $indicator;
 
 sub Start {
 	$indicator ||= Gtk2::AppIndicator->new(::PROGRAM_NAME, 'jukebox', 'application-status');
@@ -93,15 +93,6 @@ sub Update {
 	$indicator->set_secondary_activate_target($menuentry) if $menuentry;
 }
 
-# doesn't work, needs gmb to switch the standard icon system first
-sub UpdateIcon {
-	my $state = !defined $::TogPlay ? 'default' : $::TogPlay ? 'play' : 'pause';
-	$state = 'default' unless $::TrayIcon{$state};
-	my $path = ::dirname($::TrayIcon{$state});
-	my $name = ::barename($::TrayIcon{$state});
-	$indicator->set_icon_theme_path($iconpath = $path) if $iconpath && $iconpath ne $path;
-	$indicator->set_icon_name_active($name);
-}
 
 ######################################################################
 # Gtk2::AppIndicator                                                 #
